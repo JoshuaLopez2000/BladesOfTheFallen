@@ -17,7 +17,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
@@ -93,10 +93,10 @@ AnimatorStateMachine:
     m_Position: {x: 390, y: 110, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5600593873444866545}
-    m_Position: {x: 390, y: -90, z: 0}
+    m_Position: {x: 390, y: -100, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4586516494986186548}
-    m_Position: {x: 390, y: -170, z: 0}
+    m_Position: {x: 390, y: -180, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -161,7 +161,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0
   m_TransitionOffset: 0
   m_ExitTime: 0.8026316
   m_HasExitTime: 1
@@ -177,7 +177,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Slash01
-  m_Speed: 1
+  m_Speed: 2.5
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 682294069693659233}
@@ -190,7 +190,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -203655887218126122, guid: 09ecf46d6d1d9754f954302d472d32d2, type: 3}
+  m_Motion: {fileID: -203655887218126122, guid: 7afbeb3652bc36340850dea8702919f5, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -213,7 +213,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
