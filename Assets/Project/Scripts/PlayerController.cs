@@ -4,6 +4,8 @@ public class PlayerController : MonoBehaviour
 {
     public GameObject slashEffectPrefab;
     public Animator animator;
+    public Material inkWaveMaterial;
+    private bool inkShader = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -20,6 +22,19 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("HitEnemy", true);
             animator.SetInteger("IdAttack", 0);
             PerformSlash();
+            if (inkShader)
+            {
+                inkShader = false;
+                inkWaveMaterial.SetFloat("_Switch", 1);
+            }
+            else
+            {
+                inkShader = true;
+                inkWaveMaterial.SetFloat("_Switch", 0);
+
+            }
+            Debug.Log("Switch: " + inkWaveMaterial.GetFloat("_Switch"));
+
         }
     }
 
