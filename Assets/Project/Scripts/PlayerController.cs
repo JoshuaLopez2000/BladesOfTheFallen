@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController instance;
     public GameObject slashEffectPrefab;
     public Animator animator;
     public Material inkWaveMaterial;
@@ -10,13 +11,16 @@ public class PlayerController : MonoBehaviour
     private float lastAttackTime = 0f;
     private List<int> attackIds = new List<int> { 0, 1, 2, 3 };
     private int attackId = 0;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private void Awake()
+    {
+        instance = this;
+
+    }
     void Start()
     {
         animator = GetComponent<Animator>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.RightArrow))
@@ -35,7 +39,6 @@ public class PlayerController : MonoBehaviour
 
     private void getAttackId()
     {
-        //manage the attack id on order to have a different attack each time, if 2 seconds have passed the list is reset
         if (Time.time - lastAttackTime > 2f)
         {
             attackIds = new List<int> { 0, 1, 2, 3 };
@@ -58,7 +61,7 @@ public class PlayerController : MonoBehaviour
         getAttackId();
         animator.SetFloat("IdAttack", attackId);
         animator.SetTrigger("Attack");
-        GameObject effect = Instantiate(slashEffectPrefab, transform.position, transform.rotation);
+        GameObject effect = Instantiate(slashEffectPrefab, transform.position - (1.5f * transform.forward), transform.rotation);
         Destroy(effect, 1.5f);
     }
 
