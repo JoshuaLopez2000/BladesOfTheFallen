@@ -19,8 +19,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // debug raycast on scene
-        Debug.DrawRay(transform.position, transform.forward * 2f, Color.red, 1f);
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             transform.rotation = Quaternion.Euler(0, 90, 0);
@@ -62,20 +60,11 @@ public class PlayerController : MonoBehaviour
         animator.SetTrigger("Attack");
         GameObject effect = Instantiate(slashEffectPrefab, transform.position, transform.rotation);
         Destroy(effect, 1.5f);
-        VerifyHit();
     }
 
-    public void VerifyHit()
+    public void EnemyHitted(GameObject enemy)
     {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, 2f))
-        {
-            if (hit.collider.CompareTag("Enemy"))
-            {
-                Debug.Log("Hit enemy with attack ID: " + attackId);
-                //destroy the enemy as demonstration
-                Destroy(hit.collider.gameObject);
-            }
-        }
+        Debug.Log("Golpeaste a " + enemy.name);
+        Destroy(enemy);
     }
 }
