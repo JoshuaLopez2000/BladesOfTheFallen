@@ -1606,9 +1606,9 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": -2524.0,
-            "y": 675.0,
-            "width": 124.0,
-            "height": 173.0
+            "y": 670.0000610351563,
+            "width": 105.0,
+            "height": 77.0
         }
     },
     "m_Slots": [
