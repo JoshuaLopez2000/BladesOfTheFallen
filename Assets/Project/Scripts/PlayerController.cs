@@ -38,6 +38,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void inputRight()
+    {
+        transform.rotation = Quaternion.Euler(0, 90, 0);
+        PerformSlash();
+    }
+
+    public void inputLeft()
+    {
+        transform.rotation = Quaternion.Euler(0, 270, 0);
+        PerformSlash();
+    }
+
 
     private void getAttackId()
     {
