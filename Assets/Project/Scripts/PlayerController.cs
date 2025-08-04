@@ -4,10 +4,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController instance;
-    public GameObject slashEffectPrefab;
     public Animator animator;
     public Material inkWaveMaterial;
-    private bool inkShader = false;
     private float lastAttackTime = 0f;
     private List<int> attackIds = new List<int> { 0, 1, 2, 3 };
     private int attackId = 0;
@@ -61,8 +59,6 @@ public class PlayerController : MonoBehaviour
         getAttackId();
         animator.SetFloat("IdAttack", attackId);
         animator.SetTrigger("Attack");
-        GameObject effect = Instantiate(slashEffectPrefab, transform.position - (1.5f * transform.forward), transform.rotation);
-        Destroy(effect, 1.5f);
     }
 
     public void EnemyHitted(GameObject enemy)
