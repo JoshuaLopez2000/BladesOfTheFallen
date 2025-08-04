@@ -64,6 +64,6 @@ public class PlayerController : MonoBehaviour
     public void EnemyHitted(GameObject enemy)
     {
         Debug.Log("Golpeaste a " + enemy.name);
-        Destroy(enemy);
+        //Destroy(enemy);
     }
 }

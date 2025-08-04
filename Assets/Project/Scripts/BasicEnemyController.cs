@@ -9,6 +9,10 @@ public class BasicEnemyController : MonoBehaviour
     {
         // Find the player GameObject by its tag
         player = GameObject.FindWithTag("Player");
+        var renderer = GetComponent<Renderer>();
+        var block = new MaterialPropertyBlock();
+        block.SetColor("_Color", Color.red);
+        renderer.SetPropertyBlock(block);
     }
 
     // Update is called once per frame
@@ -21,4 +25,24 @@ public class BasicEnemyController : MonoBehaviour
             transform.Translate(direction * speed * Time.deltaTime);
         }
     }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Hitbox"))
+        {
+            Debug.Log("Enemy hit by player!");
+            ChangeColor(Color.yellow);
+        }
+    }
+
+
+    public void ChangeColor(Color newColor)
+    {
+        var renderer = GetComponent<Renderer>();
+        var block = new MaterialPropertyBlock();
+        renderer.GetPropertyBlock(block);
+        block.SetColor("_Color", newColor);
+        renderer.SetPropertyBlock(block);
+    }
+
 }
