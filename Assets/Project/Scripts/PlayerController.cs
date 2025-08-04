@@ -6,8 +6,9 @@ public class PlayerController : MonoBehaviour
     public static PlayerController instance;
     public Animator animator;
     public Material inkWaveMaterial;
+    public float attackRange = 2f, maxApproachDistance = 2.0f;
     private float lastAttackTime = 0f;
-    private List<int> attackIds = new List<int> { 0, 1, 2, 3 };
+    private List<int> attackIdsAux = new List<int> { 0, 1, 2, 3 }, attackIds = new List<int>();
     private int attackId = 0;
     private void Awake()
     {
@@ -17,10 +18,13 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        attackIds = new List<int>(attackIdsAux);
     }
 
     void Update()
     {
+        // Debug raycast to check player position
+        Debug.DrawRay(transform.position, transform.forward * attackRange, Color.red);
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             transform.rotation = Quaternion.Euler(0, 90, 0);
@@ -39,7 +43,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Time.time - lastAttackTime > 2f)
         {
-            attackIds = new List<int> { 0, 1, 2, 3 };
+            attackIds = new List<int>(attackIdsAux);
         }
 
         int newAttackId = attackIds[0];
@@ -49,16 +53,46 @@ public class PlayerController : MonoBehaviour
 
         if (attackIds.Count == 0)
         {
-            attackIds = new List<int> { 0, 1, 2, 3 };
+            attackIds = new List<int>(attackIdsAux);
         }
         attackId = newAttackId;
     }
 
     void PerformSlash()
     {
+        bool enemyHit = false;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, attackRange))
+        {
+            if (hit.collider.CompareTag("Enemy"))
+            {
+                Debug.Log("Enemy hit on raycast: " + hit.collider.name);
+                float distanceX = Mathf.Abs(transform.position.x - hit.collider.transform.position.x);
+                Debug.Log("Distance X: " + distanceX + ", Max Approach Distance: " + maxApproachDistance);
+
+                if (distanceX > maxApproachDistance)
+                {
+                    Debug.Log("Approaching enemy");
+                    // Calcula nueva posición sólo en X
+                    Vector3 targetPosition = new Vector3(hit.collider.transform.position.x, transform.position.y, transform.position.z);
+                    transform.position = Vector3.MoveTowards(transform.position, targetPosition, distanceX - maxApproachDistance);
+                }
+
+                enemyHit = true;
+            }
+            else
+            {
+                Debug.Log("No enemy hit");
+                enemyHit = false;
+            }
+        }
         getAttackId();
-        animator.SetFloat("IdAttack", attackId);
+        animator.SetFloat("idAttack", attackId);
         animator.SetTrigger("Attack");
+        if (!enemyHit)
+        {
+            // TODO: Play fail attack animation
+        }
     }
 
     public void EnemyHitted(GameObject enemy)

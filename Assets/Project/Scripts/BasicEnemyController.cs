@@ -32,6 +32,7 @@ public class BasicEnemyController : MonoBehaviour
         {
             Debug.Log("Enemy hit by player!");
             ChangeColor(Color.yellow);
+            Destroy(gameObject);
         }
     }
 
