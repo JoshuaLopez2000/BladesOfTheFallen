@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public TextMeshProUGUI testText;
+    private int testInt = 0;
     public static PlayerController instance;
     public Animator animator;
     public Material inkWaveMaterial;
@@ -122,5 +126,15 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Golpeaste a " + enemy.name);
         //Destroy(enemy);
+    }
+
+    public void TestButton()
+    {
+        testInt++;
+        if (testText != null)
+        {
+            testText.text = "Test button pressed: " + testInt;
+        }
+        Debug.Log("Test button pressed: " + testInt);
     }
 }
