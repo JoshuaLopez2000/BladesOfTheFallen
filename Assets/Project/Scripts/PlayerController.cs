@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Debug raycast to check player position
-        Debug.DrawRay(transform.position, transform.forward * attackRange, Color.red);
+        Debug.DrawRay(transform.position + Vector3.up * 0.2f, transform.forward * attackRange, Color.red);
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             transform.rotation = Quaternion.Euler(0, 90, 0);
@@ -72,12 +72,22 @@ public class PlayerController : MonoBehaviour
 
     void PerformSlash()
     {
-        bool enemyHit = false;
+        bool playerHitEnemy = false;
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, attackRange))
+        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out hit, attackRange))
         {
             if (hit.collider.CompareTag("Enemy"))
             {
+                EnemyBase enemy = hit.collider.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.Hit();
+                }
+                else
+                {
+                    Debug.Log("Raycast hit, but not an enemy");
+                }
+
                 Debug.Log("Enemy hit on raycast: " + hit.collider.name);
                 float distanceX = Mathf.Abs(transform.position.x - hit.collider.transform.position.x);
                 Debug.Log("Distance X: " + distanceX + ", Max Approach Distance: " + maxApproachDistance);
@@ -89,8 +99,7 @@ public class PlayerController : MonoBehaviour
                     Vector3 targetPosition = new Vector3(hit.collider.transform.position.x, transform.position.y, transform.position.z);
                     transform.position = Vector3.MoveTowards(transform.position, targetPosition, distanceX - maxApproachDistance);
                 }
-
-                enemyHit = true;
+                playerHitEnemy = true;
             }
         }
         else
@@ -103,7 +112,7 @@ public class PlayerController : MonoBehaviour
         getAttackId();
         animator.SetFloat("idAttack", attackId);
         animator.SetTrigger("Attack");
-        if (!enemyHit)
+        if (!playerHitEnemy)
         {
             // TODO: Play fail attack animation
         }

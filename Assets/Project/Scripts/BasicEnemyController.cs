@@ -1,11 +1,10 @@
 using UnityEngine;
 
-public class BasicEnemyController : MonoBehaviour
+public class BasicEnemyController : EnemyBase
 {
-    private GameObject player;
     public float speed = 1.0f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void Start()
     {
         // Find the player GameObject by its tag
         player = GameObject.FindWithTag("Player");
@@ -15,7 +14,6 @@ public class BasicEnemyController : MonoBehaviour
         renderer.SetPropertyBlock(block);
     }
 
-    // Update is called once per frame
     void Update()
     {
         // Translate the enemy to move towards the player
@@ -26,24 +24,10 @@ public class BasicEnemyController : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    public override void Hit()
     {
-        if (other.CompareTag("Hitbox"))
-        {
-            Debug.Log("Enemy hit by player!");
-            ChangeColor(Color.yellow);
-            Destroy(gameObject);
-        }
+        Debug.Log("Basic enemy hit");
+        SetColor(Color.yellow);
+        Die();
     }
-
-
-    public void ChangeColor(Color newColor)
-    {
-        var renderer = GetComponent<Renderer>();
-        var block = new MaterialPropertyBlock();
-        renderer.GetPropertyBlock(block);
-        block.SetColor("_Color", newColor);
-        renderer.SetPropertyBlock(block);
-    }
-
 }
