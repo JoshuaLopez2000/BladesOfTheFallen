@@ -27,17 +27,6 @@ public class PlayerController : MonoBehaviour
     {
         // Debug raycast to check player position
         Debug.DrawRay(transform.position + Vector3.up * 0.2f, transform.forward * attackRange, Color.red);
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            transform.rotation = Quaternion.Euler(0, 90, 0);
-            PerformSlash();
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            transform.rotation = Quaternion.Euler(0, 270, 0);
-            PerformSlash();
-        }
     }
 
     public void inputRight()
