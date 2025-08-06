@@ -27,6 +27,7 @@ public class PlayerController : MonoBehaviour
     {
         // Debug raycast to check player position
         Debug.DrawRay(transform.position + Vector3.up * 0.2f, transform.forward * attackRange, Color.red);
+        Debug.DrawRay(transform.position + Vector3.up * 0.2f, -transform.forward * attackRange, Color.blue);
     }
 
     public void inputRight()
@@ -98,7 +99,7 @@ public class PlayerController : MonoBehaviour
             Debug.Log("No enemy hit, moving forward");
             float directionX = Mathf.Sign(transform.forward.x);
             Vector3 targetPosition = new Vector3(transform.position.x + directionX * attackRange, transform.position.y, transform.position.z);
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, attackRange);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, attackRange - maxApproachDistance);
         }
         getAttackId();
         animator.SetFloat("idAttack", attackId);
