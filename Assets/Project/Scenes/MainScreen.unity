@@ -315,10 +315,14 @@ PrefabInstance:
     - target: {fileID: -3887185075125053422, guid: 51e01f761a82f094ca644aef776e179c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 557ee028db0b5254cb6a0bbcd8d1651b, type: 2}
+      objectReference: {fileID: 2100000, guid: 4f7015247afe896449c151614276e5cf, type: 2}
     - target: {fileID: 919132149155446097, guid: 51e01f761a82f094ca644aef776e179c, type: 3}
       propertyPath: m_Name
       value: ClothKatana
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 51e01f761a82f094ca644aef776e179c, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
