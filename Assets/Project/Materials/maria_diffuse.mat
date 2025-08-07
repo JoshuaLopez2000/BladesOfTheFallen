@@ -126,6 +126,7 @@ Material:
     - _Glossiness: 0.4472136
     - _GlossyReflections: 1
     - _InkSaturation: 1.18
+    - _MainTextureTiling: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
