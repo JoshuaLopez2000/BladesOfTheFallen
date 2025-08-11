@@ -124,7 +124,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Horizontal: 1
-    - _InkAlphaTiling: -0.05
+    - _InkAlphaTiling: 0.01
     - _MainTextureTiling: 0.26
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -140,7 +140,7 @@ Material:
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
-    - _alphaClip: 0.22
+    - _alphaClip: 0.13
     - _smoothness: 0
     - _waterPaintTiling: 0.01
     m_Colors:

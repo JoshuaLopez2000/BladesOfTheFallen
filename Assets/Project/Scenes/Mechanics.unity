@@ -314,8 +314,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.01
+  far clip plane: 369.85086
   field of view: 76.1
   orthographic: 0
   orthographic size: 5
@@ -343,7 +343,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.22495107, y: 0, z: 0, w: 0.9743701}
-  m_LocalPosition: {x: 0, y: 8.994201, z: -12.6}
+  m_LocalPosition: {x: 0, y: 18.864199, z: -21.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -870,7 +870,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4470145363040549765, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4780856655976524501, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
       propertyPath: m_Name
@@ -2196,14 +2196,12 @@ VideoPlayer:
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1.5
   m_AudioOutputMode: 2
-  m_TargetAudioSources:
-  - {fileID: 0}
-  m_DirectAudioVolumes:
-  - 1
+  m_TargetAudioSources: []
+  m_DirectAudioVolumes: []
   m_Url: 
-  m_EnabledAudioTracks: 01
-  m_DirectAudioMutes: 00
-  m_ControlledAudioTrackCount: 1
+  m_EnabledAudioTracks: 
+  m_DirectAudioMutes: 
+  m_ControlledAudioTrackCount: 0
   m_PlayOnAwake: 1
   m_SkipOnDrop: 1
   m_Looping: 1
@@ -2329,8 +2327,8 @@ MonoBehaviour:
   Lens:
     FieldOfView: 76.1
     OrthographicSize: 5
-    NearClipPlane: 0.3
-    FarClipPlane: 1000
+    NearClipPlane: 0.01
+    FarClipPlane: 369.85086
     Dutch: 0
     ModeOverride: 0
     PhysicalProperties:
@@ -2355,7 +2353,7 @@ Transform:
   m_GameObject: {fileID: 1057875626}
   serializedVersion: 2
   m_LocalRotation: {x: 0.22495107, y: 0, z: 0, w: 0.9743701}
-  m_LocalPosition: {x: 0, y: 8.994201, z: -12.6}
+  m_LocalPosition: {x: 0, y: 18.864199, z: -21.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2379,7 +2377,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 9.27, z: -12.6}
+  FollowOffset: {x: 0, y: 19.14, z: -21.2}
 --- !u!1 &1249744631
 GameObject:
   m_ObjectHideFlags: 0
@@ -3236,7 +3234,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fadePauseCanvas: {fileID: 955134820}
   fadeHudCanvas: {fileID: 2024363409}
-  fadeSpeed: 2
+  fadeSpeed: 1
 --- !u!4 &1988619485
 Transform:
   m_ObjectHideFlags: 0
@@ -14231,12 +14229,12 @@ MonoBehaviour:
     RequiredSelectable: {fileID: 0}
   ScreenDepth:
     Conversion: 0
-    Camera: {fileID: 0}
+    Camera: {fileID: 330585545}
     Object: {fileID: 0}
     Layers:
       serializedVersion: 2
       m_Bits: 0
-    Distance: 5
+    Distance: 15
   prefab: {fileID: 7981132172259172755}
   maxTrails: -1
   fadeTime: 1
