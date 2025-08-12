@@ -1,19 +1,27 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class ShowFPS : MonoBehaviour
 {
     public TextMeshProUGUI fpsText;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
-
+    private List<float> fpsHistory = new List<float>();
     // Update is called once per frame
     void Update()
     {
+        //average frames per second
         float fps = 1.0f / Time.deltaTime;
-        fpsText.text = "FPS: " + Mathf.Round(fps);
+        fpsHistory.Add(fps);
+        if (fpsHistory.Count > 100)
+        {
+            fpsHistory.RemoveAt(0);
+        }
+        float averageFps = 0;
+        foreach (float f in fpsHistory)
+        {
+            averageFps += f;
+        }
+        averageFps /= fpsHistory.Count;
+        fpsText.text = "FPS: " + Mathf.Round(averageFps);
     }
 }
