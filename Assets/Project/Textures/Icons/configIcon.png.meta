@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1d505c5f9787ab44f87a0c1b4695f6ec
+guid: 10c3663f98ed5dc4c902e6ad6425d511
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -95,14 +95,14 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,23 +110,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PauseButton_0
+      name: configIcon_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1024
-        height: 1024
+        x: 40
+        y: 36
+        width: 418
+        height: 462
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 916e00ee24a294643894a74c771d0cd2
-      internalID: -857676401
+      spriteID: eca441830939ae74684fdaf2bb968b8a
+      internalID: -1895671373
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: c565f9160ccabd84a82d3e8e5be91bc2
+    spriteID: f6b4ddc3271e22e42b56ae6415fb2f91
     internalID: 0
     vertices: []
     indices: 
@@ -145,7 +145,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PauseButton_0: -857676401
+      configIcon_0: -1895671373
+      configIcon_1: -727730668
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

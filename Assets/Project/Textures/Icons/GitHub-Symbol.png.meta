@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3b161b9658b29bb40be370273fcebce4
+guid: 11f4704e68addaa449986afea276f807
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PauseButtonWhite_0
+      name: GitHub-Symbol_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 3
         y: 0
-        width: 1024
-        height: 1024
+        width: 507
+        height: 502
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5df182b44cbc99840a5c29673500b871
-      internalID: -1689759186
+      spriteID: 0d3f6604afe4be047a7017469f0ed1a8
+      internalID: 1241184632
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2c1f2c2ad77d3ff45ae86e589a9de248
+    spriteID: 5feb80220700e8741a2d9aad3c0db4ab
     internalID: 0
     vertices: []
     indices: 
@@ -145,7 +145,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PauseButtonWhite_0: -1689759186
+      GitHub-Symbol_0: 1241184632
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
