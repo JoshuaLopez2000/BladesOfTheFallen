@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -10,8 +11,9 @@ public class PlayerController : MonoBehaviour
     public Material inkWaveMaterial;
     public float attackRange = 2f, maxApproachDistance = 2.0f;
     private float lastAttackTime = 0f;
-    private List<int> attackIdsAux = new List<int> { 0, 1, 2, 3 }, attackIds = new List<int>();
+    private List<int> attackIdsAux = new List<int> { 0, 1, 2 }, attackIds = new List<int>();
     private int attackId = 0;
+    private bool playerCanHit = true, resetting = false;
     private void Awake()
     {
         instance = this;
@@ -21,6 +23,7 @@ public class PlayerController : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         attackIds = new List<int>(attackIdsAux);
+        playerCanHit = true;
     }
 
     void Update()
@@ -28,20 +31,39 @@ public class PlayerController : MonoBehaviour
         // Debug raycast to check player position
         Debug.DrawRay(transform.position + Vector3.up * 0.2f, transform.forward * attackRange, Color.red);
         Debug.DrawRay(transform.position + Vector3.up * 0.2f, -transform.forward * attackRange, Color.blue);
+        if (!playerCanHit && !resetting)
+        {
+            StartCoroutine(WaitAndReset(2f));
+        }
     }
 
     public void inputRight()
     {
-        transform.rotation = Quaternion.Euler(0, 90, 0);
-        PerformSlash();
+        if (playerCanHit)
+        {
+            transform.rotation = Quaternion.Euler(0, 90, 0);
+            PerformSlash();
+        }
+
     }
 
     public void inputLeft()
     {
-        transform.rotation = Quaternion.Euler(0, 270, 0);
-        PerformSlash();
+        if (playerCanHit)
+        {
+            transform.rotation = Quaternion.Euler(0, 270, 0);
+            PerformSlash();
+        }
     }
 
+    public void inputUp()
+    {
+        if (playerCanHit)
+        {
+            PerformParry();
+            playerCanHit = false;
+        }
+    }
 
     private void getAttackId()
     {
@@ -62,9 +84,13 @@ public class PlayerController : MonoBehaviour
         attackId = newAttackId;
     }
 
+    void PerformParry()
+    {
+        animator.SetTrigger("Parry");
+        //TODO: Implement parry logic
+    }
     void PerformSlash()
     {
-        bool playerHitEnemy = false;
         RaycastHit hit;
         if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out hit, attackRange))
         {
@@ -74,6 +100,7 @@ public class PlayerController : MonoBehaviour
                 if (enemy != null)
                 {
                     enemy.Hit();
+                    animator.SetBool("HitEnemy", true);
                 }
                 else
                 {
@@ -91,11 +118,12 @@ public class PlayerController : MonoBehaviour
                     Vector3 targetPosition = new Vector3(hit.collider.transform.position.x, transform.position.y, transform.position.z);
                     transform.position = Vector3.MoveTowards(transform.position, targetPosition, distanceX - maxApproachDistance);
                 }
-                playerHitEnemy = true;
+                playerCanHit = true;
             }
         }
         else
         {
+            playerCanHit = false;
             Debug.Log("No enemy hit, moving forward");
             float directionX = Mathf.Sign(transform.forward.x);
             Vector3 targetPosition = new Vector3(transform.position.x + directionX * attackRange, transform.position.y, transform.position.z);
@@ -104,15 +132,16 @@ public class PlayerController : MonoBehaviour
         getAttackId();
         animator.SetFloat("idAttack", attackId);
         animator.SetTrigger("Attack");
-        if (!playerHitEnemy)
+        if (!playerCanHit)
         {
-            // TODO: Play fail attack animation
+            animator.SetBool("HitEnemy", false);
         }
     }
-
-    public void EnemyHitted(GameObject enemy)
+    private IEnumerator WaitAndReset(float waitTime)
     {
-        Debug.Log("Golpeaste a " + enemy.name);
-        //Destroy(enemy);
+        resetting = true;
+        yield return new WaitForSeconds(waitTime);
+        playerCanHit = true;
+        resetting = false;
     }
 }

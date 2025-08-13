@@ -563,17 +563,49 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 543450653307841879}
+    - target: {fileID: 4356972195737915353, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: parallaxFactor
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 4470145363040549765, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
       propertyPath: m_Name
       value: Background
+      objectReference: {fileID: 0}
+    - target: {fileID: 4470145363040549765, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4780856655976524501, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
       propertyPath: m_Name
       value: PlaneBlack
       objectReference: {fileID: 0}
+    - target: {fileID: 4780856655976524501, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4790888441424882501, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
       propertyPath: m_Name
       value: "Monta\xF1aBlack"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4790888441424882501, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5510779238915265440, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878180511105470371, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7468122494801451888, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7893980285098148833, guid: 1363033c0a4420c479308dfb80a742f6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12782,10 +12814,10 @@ MonoBehaviour:
   onFinger:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: set_text
-        m_Mode: 5
+      - m_Target: {fileID: 2069658754}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: inputUp
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
