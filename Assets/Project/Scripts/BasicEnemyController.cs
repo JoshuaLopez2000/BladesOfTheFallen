@@ -31,10 +31,12 @@ public class BasicEnemyController : EnemyBase
         if (enemyLives > 1)
         {
             enemyLives--;
+            gameManager.IncreaseScore(gameManager.scorePerHit);
             SetColor(Color.red);
         }
         else
         {
+            gameManager.IncreaseScore(gameManager.scorePerEnemy);
             Die();
         }
     }

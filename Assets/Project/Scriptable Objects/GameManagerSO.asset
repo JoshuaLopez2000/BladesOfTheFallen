@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameManagerSO
   m_EditorClassIdentifier: 
   playerLives: 3
-  playerScore: 0
+  _playerScore: 0
   scorePerEnemy: 10
   scorePerHit: 5
   scorePerPerfectHit: 15
