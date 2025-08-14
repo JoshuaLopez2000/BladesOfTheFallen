@@ -62,6 +62,7 @@ public class PlayerController : MonoBehaviour
         {
             PerformParry();
             playerCanHit = false;
+            animator.SetBool("HitEnemy", false); //TODO: Remove and implement parry 
         }
     }
 
