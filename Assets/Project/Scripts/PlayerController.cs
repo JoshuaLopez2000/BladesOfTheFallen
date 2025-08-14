@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,6 +12,8 @@ public class PlayerController : MonoBehaviour
     private List<int> attackIdsAux = new List<int> { 0, 1, 2 }, attackIds = new List<int>();
     private int attackId = 0;
     private bool playerCanHit = true, resetting = false;
+    private static System.Random rng = new System.Random();
+
     private void Awake()
     {
         instance = this;
@@ -70,6 +70,7 @@ public class PlayerController : MonoBehaviour
         if (Time.time - lastAttackTime > 2f)
         {
             attackIds = new List<int>(attackIdsAux);
+            attackIds.Shuffle();
         }
 
         int newAttackId = attackIds[0];
@@ -80,6 +81,7 @@ public class PlayerController : MonoBehaviour
         if (attackIds.Count == 0)
         {
             attackIds = new List<int>(attackIdsAux);
+            attackIds.Shuffle();
         }
         attackId = newAttackId;
     }
