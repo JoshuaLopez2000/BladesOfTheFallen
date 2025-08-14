@@ -2,16 +2,9 @@ using UnityEngine;
 
 public class BasicEnemyController : EnemyBase
 {
-    public float speed = 1.0f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     public override void Start()
     {
-        // Find the player GameObject by its tag
-        player = GameObject.FindWithTag("Player");
-        var renderer = GetComponent<Renderer>();
-        var block = new MaterialPropertyBlock();
-        block.SetColor("_Color", Color.red);
-        renderer.SetPropertyBlock(block);
+        base.Start();
     }
 
     void Update()
@@ -20,14 +13,29 @@ public class BasicEnemyController : EnemyBase
         if (player != null)
         {
             Vector3 direction = (player.transform.position - transform.position).normalized;
-            transform.Translate(direction * speed * Time.deltaTime);
+            transform.Translate(direction * speed * Time.deltaTime, Space.World);
+        }
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + (Vector3.up * 0.2f), transform.forward, out hit, distanceBetweenEnemies))
+        {
+            if (hit.collider.CompareTag("Enemy") && hit.collider != this.GetComponent<Collider>())
+            {
+                transform.Translate(-Vector3.forward * speed * Time.deltaTime);
+            }
         }
     }
 
     public override void Hit()
     {
         Debug.Log("Basic enemy hit");
-        SetColor(Color.yellow);
-        Die();
+        if (enemyLives > 1)
+        {
+            enemyLives--;
+            SetColor(Color.red);
+        }
+        else
+        {
+            Die();
+        }
     }
 }

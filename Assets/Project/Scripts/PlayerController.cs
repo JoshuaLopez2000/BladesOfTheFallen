@@ -4,15 +4,17 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameManagerSO gameManager;
+
     public static PlayerController instance;
     public Animator animator;
     public Material inkWaveMaterial;
-    public float attackRange = 2f, maxApproachDistance = 2.0f;
+    private float attackRange = 2f, maxApproachDistance = 2.0f;
+    public Renderer playerInkWaveRenderer, katanaInkWaveRenderer;
     private float lastAttackTime = 0f;
     private List<int> attackIdsAux = new List<int> { 0, 1, 2 }, attackIds = new List<int>();
     private int attackId = 0;
     private bool playerCanHit = true, resetting = false;
-    private static System.Random rng = new System.Random();
 
     private void Awake()
     {
@@ -24,6 +26,9 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         attackIds = new List<int>(attackIdsAux);
         playerCanHit = true;
+
+        attackRange = gameManager.PlayerAttackRange;
+        maxApproachDistance = gameManager.PlayerMaxApproachDistance;
     }
 
     void Update()
@@ -34,6 +39,21 @@ public class PlayerController : MonoBehaviour
         if (!playerCanHit && !resetting)
         {
             StartCoroutine(WaitAndReset(2f));
+        }
+
+        if (gameManager.hasEspecialHability)
+        {
+            var block = new MaterialPropertyBlock();
+            block.SetFloat("_Switch", 1);
+            playerInkWaveRenderer.SetPropertyBlock(block);
+            katanaInkWaveRenderer.SetPropertyBlock(block);
+        }
+        else
+        {
+            var block = new MaterialPropertyBlock();
+            block.SetFloat("_Switch", 0);
+            playerInkWaveRenderer.SetPropertyBlock(block);
+            katanaInkWaveRenderer.SetPropertyBlock(block);
         }
     }
 
@@ -117,7 +137,6 @@ public class PlayerController : MonoBehaviour
                 if (distanceX > maxApproachDistance)
                 {
                     Debug.Log("Approaching enemy");
-                    // Calcula nueva posición sólo en X
                     Vector3 targetPosition = new Vector3(hit.collider.transform.position.x, transform.position.y, transform.position.z);
                     transform.position = Vector3.MoveTowards(transform.position, targetPosition, distanceX - maxApproachDistance);
                 }

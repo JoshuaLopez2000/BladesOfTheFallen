@@ -2,36 +2,57 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject basicEnemyPrefab;
-    public float distanceFromPlayer = 10f;
+    public GameManagerSO gameManager;
+    public GameObject basicEnemyPrefab, mediumEnemyPrefab, hardEnemyPrefab;
+    public float distanceFromPlayer;
+    public float spawnInterval;
+
     private GameObject player;
-    private float spawnInterval = 5f;
     private float nextSpawnTime = 0f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
+        distanceFromPlayer = gameManager.enemySpawnDistance;
+        spawnInterval = gameManager.spawnInterval;
+
         player = GameObject.FindWithTag("Player");
         nextSpawnTime = Time.time + spawnInterval;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (player == null) return;
+
         if (Time.time >= nextSpawnTime)
         {
-            SpawnEnemy();
+            SpawnEnemies();
             nextSpawnTime = Time.time + spawnInterval;
-        }
-        if (player != null)
-        {
-            // Position the spawner at a fixed distance from the player
-            Vector3 direction = (transform.position - player.transform.position).normalized;
-            transform.position = player.transform.position + direction * distanceFromPlayer;
         }
     }
 
-    private void SpawnEnemy()
+    private void SpawnEnemies()
     {
-        Instantiate(basicEnemyPrefab, transform.position, Quaternion.identity);
+        Vector3 rightPos = new Vector3(player.transform.position.x + distanceFromPlayer,
+                                       transform.position.y,
+                                       transform.position.z);
+
+        Vector3 leftPos = new Vector3(player.transform.position.x - distanceFromPlayer,
+                                      transform.position.y,
+                                      transform.position.z);
+
+        int sideSpawn = Random.Range(1, 4);
+        switch (sideSpawn)
+        {
+            case 1:
+                Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
+                break;
+            case 2:
+                Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                break;
+            case 3:
+                Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
+                Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                break;
+        }
     }
 }
