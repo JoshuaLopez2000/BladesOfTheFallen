@@ -40,10 +40,10 @@ public class EnemySpawner : MonoBehaviour
 
     private void UpdateSpawnInterval(int totalKilled)
     {
-        if (totalKilled < 10)
-            gameManager.spawnInterval = 2.0f;
-        else if (totalKilled < 30)
-            gameManager.spawnInterval = 1.0f;
+        if (totalKilled == 10)
+            gameManager.DecreaseSpawnInterval();
+        else if (totalKilled == 30)
+            gameManager.DecreaseSpawnInterval();
     }
 
     private void SpawnEnemies()

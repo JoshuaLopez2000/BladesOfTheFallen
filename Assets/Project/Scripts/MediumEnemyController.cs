@@ -7,9 +7,13 @@ public class MediumEnemyController : EnemyBase
     public Animator mediumEnemyAnimator;
 
     private float speed;
+    private float lastAttackTime;
+    private float attackCooldown;
     public override void Start()
     {
         base.Start();
+        attackCooldown = 3.0f;
+        lastAttackTime = 0.0f;
         speed = gameManager.basicEnemySpeed;
         enemyLives = 3;
 
@@ -23,6 +27,11 @@ public class MediumEnemyController : EnemyBase
 
     void Update()
     {
+        if ((Vector3.Distance(transform.position, player.transform.position) < attackRange) && !getHit && Time.time - lastAttackTime > attackCooldown)
+        {
+            mediumEnemyAnimator.SetTrigger("Attack");
+            lastAttackTime = Time.time;
+        }
         if (player != null && !getHit)
         {
             Vector3 direction = (player.transform.position - transform.position).normalized;
@@ -45,11 +54,9 @@ public class MediumEnemyController : EnemyBase
 
     public override void Hit()
     {
-        Vector3 teleportPosition = player.transform.position - player.transform.forward * 3f;
+        Vector3 teleportPosition = player.transform.position - player.transform.forward * gameManager.mediumEnemyTPDistance;
         teleportPosition.y = transform.position.y;
-
-        transform.position = teleportPosition;
-        transform.LookAt(player.transform.position);
+        StartCoroutine(WaitAndTeleport(0.1f, teleportPosition));
 
         getHit = true;
         Debug.Log("Medium enemy get hit");
@@ -71,6 +78,13 @@ public class MediumEnemyController : EnemyBase
             mediumEnemyAnimator.SetBool("IsDead", true);
             Die(0.0f);
         }
+    }
+
+    private IEnumerator WaitAndTeleport(float waitTime, Vector3 position)
+    {
+        yield return new WaitForSeconds(waitTime);
+        transform.position = position;
+        transform.LookAt(player.transform.position);
     }
 
 }

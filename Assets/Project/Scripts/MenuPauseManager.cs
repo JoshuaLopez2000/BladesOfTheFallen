@@ -7,14 +7,24 @@ public class MenuPauseManager : MonoBehaviour
     public Button resumeButton;
     public Button restartButton;
     public Button quitButton;
+    public GameObject endMenu;
 
     public Button pauseIcon, pauseIconSecundary;
+
+    private void OnEnable()
+    {
+        gameManager.OnGameOver += HandleGameOver;
+    }
+
+    private void OnDisable()
+    {
+        gameManager.OnGameOver -= HandleGameOver;
+    }
 
     void Start()
     {
         resumeButton.onClick.AddListener(OnResumeButtonClicked);
         restartButton.onClick.AddListener(OnRestartButtonClicked);
-        quitButton.onClick.AddListener(OnQuitButtonClicked);
         pauseIcon.onClick.AddListener(OnResumeButtonClicked);
         pauseIconSecundary.onClick.AddListener(OnResumeButtonClicked);
     }
@@ -38,8 +48,9 @@ public class MenuPauseManager : MonoBehaviour
         gameManager.ResetGame();
     }
 
-    private void OnQuitButtonClicked()
+    private void HandleGameOver()
     {
-        Application.Quit();
+        gameManager.ExponentialPause(2f);
+        endMenu.SetActive(true);
     }
 }

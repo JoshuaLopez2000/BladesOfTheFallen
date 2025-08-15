@@ -167,12 +167,12 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        gameManager.DecreaseLife();
         if (other.CompareTag("EnemyAttack"))
         {
             Debug.Log("Player hit by enemy attack");
             animator.SetTrigger("GetHit");
             playerCanHit = false;
+            gameManager.DecreaseLife();
         }
     }
 

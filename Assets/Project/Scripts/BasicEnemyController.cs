@@ -6,10 +6,14 @@ public class BasicEnemyController : EnemyBase
 {
     public Animator enemyAnimator;
     private float speed;
+    private float attackCooldown;
+    private float lastAttackTime;
     public override void Start()
     {
         base.Start();
         speed = gameManager.basicEnemySpeed;
+        attackCooldown = 3.0f;
+        lastAttackTime = 0.0f;
         var block = new MaterialPropertyBlock();
         enemyRenderer.GetPropertyBlock(block);
         block.SetFloat("_Switch", 0);
@@ -17,12 +21,12 @@ public class BasicEnemyController : EnemyBase
 
         if (gameManager.enemiesKilled < 5)
         {
-            gameManager.basicEnemySpeed = 1.0f;
+            gameManager.SetBasicEnemySpeed(1.0f);
             enemyLives = 1;
         }
         else if (gameManager.enemiesKilled < 10)
         {
-            gameManager.basicEnemySpeed = 2.0f;
+            gameManager.SetBasicEnemySpeed(2.0f);
             if (Random.value < 0.3f)
             {
                 enemyLives = 2;
@@ -34,7 +38,7 @@ public class BasicEnemyController : EnemyBase
         }
         else
         {
-            gameManager.basicEnemySpeed = 3.0f;
+            gameManager.SetBasicEnemySpeed(3.0f);
             if (Random.value < 0.65f)
             {
                 enemyLives = 2;
@@ -57,9 +61,10 @@ public class BasicEnemyController : EnemyBase
 
     void Update()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) < attackRange && !getHit)
+        if ((Vector3.Distance(transform.position, player.transform.position) < attackRange) && !getHit && Time.time - lastAttackTime > attackCooldown)
         {
             enemyAnimator.SetTrigger("Attack");
+            lastAttackTime = Time.time;
         }
         if (player != null && !getHit)
         {

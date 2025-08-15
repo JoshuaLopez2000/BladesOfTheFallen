@@ -96,6 +96,7 @@ public class GameManagerMono : MonoBehaviour
     public void GoToMainMenu()
     {
         gameManager.ResetGame();
-        SceneManager.LoadScene("MainScreen", LoadSceneMode.Single);
+        gameManager.ExponentialResume(1.0f);
+        SceneManager.LoadSceneAsync("MainScreen", LoadSceneMode.Single);
     }
 }

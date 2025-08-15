@@ -54,6 +54,7 @@ public class GameManagerSO : ScriptableObject
     public float basicEnemyAttackRange = 2.0f;
     public int maxHits = 2;
     public float timeToDestroyEnemy = 0.1f;
+    public float mediumEnemyTPDistance = 4.0f;
 
     private void OnEnable()
     {
@@ -66,6 +67,21 @@ public class GameManagerSO : ScriptableObject
         spawnInterval = 3.0f;
         enemySpeed = 1.0f;
         enemiesKilled = 0;
+
+        OnPlayerLivesChanged += CheckEnd;
+    }
+
+    private void OnDisable()
+    {
+        OnPlayerLivesChanged -= CheckEnd;
+    }
+
+    private void CheckEnd(int lives)
+    {
+        if (lives <= 0)
+        {
+            ChangeState(GameState.GAME_OVER);
+        }
     }
 
     public void ResetGame()
@@ -86,11 +102,28 @@ public class GameManagerSO : ScriptableObject
         playerScore += amount;
     }
 
+    public void SetBasicEnemySpeed(float speed)
+    {
+        basicEnemySpeed = speed;
+    }
+
+    public event Action<int> OnPlayerLivesChanged;
+
     public void DecreaseLife()
     {
         playerLives--;
+        OnPlayerLivesChanged?.Invoke(playerLives);
     }
 
+    public void IncreaseEnemiesKilled()
+    {
+        enemiesKilled++;
+    }
+
+    public void DecreaseSpawnInterval()
+    {
+        spawnInterval -= 0.5f;
+    }
 
     public event Action<float> OnTimeScaleChanged;
 
@@ -110,21 +143,18 @@ public class GameManagerSO : ScriptableObject
     }
 
 
+    public event Action OnGameOver;
+
     public void ChangeState(GameState newState)
     {
-        switch (gameState)
-        {
-            case GameState.INIT:
-                break;
-            case GameState.PLAYING:
-                break;
-            case GameState.PAUSE:
-                break;
-            case GameState.GAME_OVER:
-                break;
-        }
         gameState = newState;
+
+        if (gameState == GameState.GAME_OVER)
+        {
+            OnGameOver?.Invoke();
+        }
     }
+
 
     public enum GameState
     {

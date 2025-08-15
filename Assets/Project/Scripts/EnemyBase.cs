@@ -16,6 +16,16 @@ public abstract class EnemyBase : MonoBehaviour
     protected Color redColor = new Color32(133, 28, 4, 255);
     protected Color yellowColor = new Color32(255, 198, 0, 255);
 
+
+    private void OnEnable()
+    {
+        gameManager.OnPlayerLivesChanged += GiveSpace;
+    }
+
+    private void OnDisable()
+    {
+        gameManager.OnPlayerLivesChanged -= GiveSpace;
+    }
     public virtual void Start()
     {
         attackRange = gameManager.basicEnemyAttackRange;
@@ -25,6 +35,19 @@ public abstract class EnemyBase : MonoBehaviour
         player = GameObject.FindWithTag("Player");
         Vector3 direction = (player.transform.position - transform.position).normalized;
         transform.rotation = Quaternion.LookRotation(direction);
+    }
+
+    private void GiveSpace(int lives)
+    {
+        float pushBackDistance = 10.0f;
+
+        Vector3 pushBack = -transform.forward * pushBackDistance;
+
+        pushBack.y = 0;
+
+        transform.position += pushBack;
+
+        Debug.Log(name + " pushed back, player lives remaining: " + lives);
     }
 
     public abstract void Hit();
