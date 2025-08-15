@@ -4,6 +4,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GameManagerSO", menuName = "Scriptable Objects/GameManagerSO")]
 public class GameManagerSO : ScriptableObject
 {
+
+    public GameState gameState = GameState.PLAYING;
+
     //Player
     public int playerLives = 3;
     public int _playerScore;
@@ -41,6 +44,8 @@ public class GameManagerSO : ScriptableObject
 
     private void OnEnable()
     {
+        gameState = GameState.PLAYING;
+
         //recover from a file if exist, else reset to default values
         playerLives = 3;
         playerScore = 0;
@@ -68,12 +73,39 @@ public class GameManagerSO : ScriptableObject
         playerLives--;
     }
 
-    public bool PauseGame()
+
+    public event Action<float> OnTimeScaleChanged;
+
+    public void ExponentialPause(float duration = 1f)
     {
-        // Decreasing game speed and show pause menu
-        Time.timeScale = 0.5f;
-        // Show pause menu UI
-        return true;
+        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.ExponentialPauseCoroutine(duration, OnTimeScaleChanged));
+    }
+
+    public void ExponentialResume(float duration = 1f)
+    {
+        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.ExponentialResumeCoroutine(duration, OnTimeScaleChanged));
+    }
+
+    public void HitTimeEffect(float slowFactor = 0.2f, float duration = 0.5f)
+    {
+        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.HitTimeCoroutine(slowFactor, duration, OnTimeScaleChanged));
+    }
+
+
+    public void ChangeState(GameState newState)
+    {
+        switch (gameState)
+        {
+            case GameState.INIT:
+                break;
+            case GameState.PLAYING:
+                break;
+            case GameState.PAUSE:
+                break;
+            case GameState.GAME_OVER:
+                break;
+        }
+        gameState = newState;
     }
 
     public enum GameState

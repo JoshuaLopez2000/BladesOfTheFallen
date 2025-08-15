@@ -9,7 +9,6 @@ public class BasicEnemyController : EnemyBase
 
     void Update()
     {
-        // Translate the enemy to move towards the player
         if (player != null)
         {
             Vector3 direction = (player.transform.position - transform.position).normalized;

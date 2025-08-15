@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e1c6a3667283d042aca1e4165bf0148, type: 3}
   m_Name: GameManagerSO
   m_EditorClassIdentifier: 
+  gameState: 1
   playerLives: 3
-  _playerScore: 0
+  _playerScore: 80
   scorePerEnemy: 10
   scorePerHit: 5
   scorePerPerfectHit: 15
-  PlayerAttackRange: 8
-  PlayerMaxApproachDistance: 2
+  PlayerAttackRange: 9
+  PlayerMaxApproachDistance: 3
   hasEspecialHability: 1
   maxEnemies: 5
   enemiesKilled: 0

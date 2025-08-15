@@ -100,7 +100,7 @@ public class AudioVolumes
     public AudioVolumes()
     {
         main = 0.75f;
-        music = 0.75f;
+        music = 0.5f;
         SFx = 0.75f;
     }
 }

@@ -4,12 +4,12 @@ public abstract class EnemyBase : MonoBehaviour
 {
     protected GameObject player;
     public GameManagerSO gameManager;
+    [SerializeField] protected Renderer enemyRenderer;
 
     protected float attackRange;
     protected float speed;
     protected int maxHits;
     protected float distanceBetweenEnemies;
-
     protected int enemyLives;
 
     public virtual void Start()
@@ -39,11 +39,10 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected void SetColor(Color color)
     {
-        var renderer = GetComponent<Renderer>();
         var block = new MaterialPropertyBlock();
-        renderer.GetPropertyBlock(block);
+        enemyRenderer.GetPropertyBlock(block);
         block.SetColor("_Color", color);
-        renderer.SetPropertyBlock(block);
+        enemyRenderer.SetPropertyBlock(block);
     }
 
     protected void Die()
