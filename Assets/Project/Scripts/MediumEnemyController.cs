@@ -2,65 +2,27 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class BasicEnemyController : EnemyBase
+public class MediumEnemyController : EnemyBase
 {
-    public Animator enemyAnimator;
+    public Animator mediumEnemyAnimator;
+
     private float speed;
     public override void Start()
     {
         base.Start();
         speed = gameManager.basicEnemySpeed;
+        enemyLives = 3;
+
         var block = new MaterialPropertyBlock();
         enemyRenderer.GetPropertyBlock(block);
-        block.SetFloat("_Switch", 0);
+        block.SetFloat("_Switch", 1);
         enemyRenderer.SetPropertyBlock(block);
 
-        if (gameManager.enemiesKilled < 5)
-        {
-            gameManager.basicEnemySpeed = 1.0f;
-            enemyLives = 1;
-        }
-        else if (gameManager.enemiesKilled < 10)
-        {
-            gameManager.basicEnemySpeed = 2.0f;
-            if (Random.value < 0.3f)
-            {
-                enemyLives = 2;
-            }
-            else
-            {
-                enemyLives = 1;
-            }
-        }
-        else
-        {
-            gameManager.basicEnemySpeed = 3.0f;
-            if (Random.value < 0.65f)
-            {
-                enemyLives = 2;
-            }
-            else
-            {
-                enemyLives = 1;
-            }
-        }
-
-        if (enemyLives > 1)
-        {
-            SetColor(yellowColor);
-        }
-        else
-        {
-            SetColor(redColor);
-        }
+        SetColor(new Color(0.196f, 0.059f, 0.207f));
     }
 
     void Update()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) < attackRange && !getHit)
-        {
-            enemyAnimator.SetTrigger("Attack");
-        }
         if (player != null && !getHit)
         {
             Vector3 direction = (player.transform.position - transform.position).normalized;
@@ -83,20 +45,32 @@ public class BasicEnemyController : EnemyBase
 
     public override void Hit()
     {
+        Vector3 teleportPosition = player.transform.position - player.transform.forward * 3f;
+        teleportPosition.y = transform.position.y;
+
+        transform.position = teleportPosition;
+        transform.LookAt(player.transform.position);
+
         getHit = true;
-        Debug.Log("Basic enemy get hit");
-        if (enemyLives > 1)
+        Debug.Log("Medium enemy get hit");
+
+        enemyLives--;
+        if (enemyLives == 2)
         {
-            enemyLives--;
             gameManager.IncreaseScore(gameManager.scorePerHit);
-            enemyAnimator.SetTrigger("GetHit");
+            mediumEnemyAnimator.SetTrigger("GetHit");
+            SetColor(yellowColor);
+        }
+        else if (enemyLives == 1)
+        {
             SetColor(redColor);
         }
         else
         {
             gameManager.IncreaseScore(gameManager.scorePerEnemy);
-            enemyAnimator.SetBool("IsDead", true);
-            Die(0.1f);
+            mediumEnemyAnimator.SetBool("IsDead", true);
+            Die(0.0f);
         }
     }
+
 }

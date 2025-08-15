@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - MusicSlider
+  - EnemyAttack
   layers:
   - Default
   - TransparentFX

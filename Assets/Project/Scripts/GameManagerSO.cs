@@ -32,7 +32,18 @@ public class GameManagerSO : ScriptableObject
 
     //Game
     public int level = 1;
-    public int enemiesKilled = 0;
+    public event Action<int> OnEnemiesKilledChanged;
+
+    public int _enemiesKilled;
+    public int enemiesKilled
+    {
+        get => _enemiesKilled;
+        set
+        {
+            _enemiesKilled = value;
+            OnEnemiesKilledChanged?.Invoke(_enemiesKilled);
+        }
+    }
     public float spawnInterval = 3.0f;
     public float enemySpeed = 1.0f;
     public float enemySpawnDistance = 10.0f;

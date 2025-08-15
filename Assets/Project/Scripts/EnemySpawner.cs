@@ -5,18 +5,15 @@ public class EnemySpawner : MonoBehaviour
     public GameManagerSO gameManager;
     public GameObject basicEnemyPrefab, mediumEnemyPrefab, hardEnemyPrefab;
     public float distanceFromPlayer;
-    public float spawnInterval;
-
     private GameObject player;
     private float nextSpawnTime = 0f;
 
     void Start()
     {
         distanceFromPlayer = gameManager.enemySpawnDistance;
-        spawnInterval = gameManager.spawnInterval;
 
         player = GameObject.FindWithTag("Player");
-        nextSpawnTime = Time.time + spawnInterval;
+        nextSpawnTime = Time.time + gameManager.spawnInterval;
     }
 
     void Update()
@@ -26,8 +23,27 @@ public class EnemySpawner : MonoBehaviour
         if (Time.time >= nextSpawnTime)
         {
             SpawnEnemies();
-            nextSpawnTime = Time.time + spawnInterval;
+            nextSpawnTime = Time.time + gameManager.spawnInterval;
         }
+    }
+
+
+    private void OnEnable()
+    {
+        gameManager.OnEnemiesKilledChanged += UpdateSpawnInterval;
+    }
+
+    private void OnDisable()
+    {
+        gameManager.OnEnemiesKilledChanged -= UpdateSpawnInterval;
+    }
+
+    private void UpdateSpawnInterval(int totalKilled)
+    {
+        if (totalKilled < 10)
+            gameManager.spawnInterval = 2.0f;
+        else if (totalKilled < 30)
+            gameManager.spawnInterval = 1.0f;
     }
 
     private void SpawnEnemies()
@@ -41,17 +57,31 @@ public class EnemySpawner : MonoBehaviour
                                       transform.position.z);
 
         int sideSpawn = Random.Range(1, 4);
+        int enemyType = Random.Range(0, 2); // 0: Basic, 1: Medium
         switch (sideSpawn)
         {
             case 1:
-                Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
+                if (enemyType == 0)
+                    Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
+                else
+                    Instantiate(mediumEnemyPrefab, rightPos, Quaternion.identity);
                 break;
             case 2:
-                Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                if (enemyType == 0)
+                    Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                else
+                    Instantiate(mediumEnemyPrefab, leftPos, Quaternion.identity);
                 break;
             case 3:
-                Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
-                Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                if (enemyType == 0)
+                    Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity);
+                else
+                    Instantiate(mediumEnemyPrefab, rightPos, Quaternion.identity);
+
+                if (enemyType == 0)
+                    Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity);
+                else
+                    Instantiate(mediumEnemyPrefab, leftPos, Quaternion.identity);
                 break;
         }
     }

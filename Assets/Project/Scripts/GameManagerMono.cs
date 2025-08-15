@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManagerMono : MonoBehaviour
 {
@@ -89,5 +91,11 @@ public class GameManagerMono : MonoBehaviour
     public void Reset()
     {
         gameManager.ResetGame();
+    }
+
+    public void GoToMainMenu()
+    {
+        gameManager.ResetGame();
+        SceneManager.LoadScene("MainScreen", LoadSceneMode.Single);
     }
 }

@@ -21,12 +21,13 @@ MonoBehaviour:
   PlayerAttackRange: 9
   PlayerMaxApproachDistance: 3
   hasEspecialHability: 1
-  maxEnemies: 5
-  enemiesKilled: 0
-  spawnInterval: 3
+  level: 1
+  _enemiesKilled: 8
+  spawnInterval: 2
   enemySpeed: 1
   enemySpawnDistance: 10
   distanceBetweenEnemies: 2
-  basicEnemySpeed: 1
-  basicEnemyAttackRange: 2
+  basicEnemySpeed: 2
+  basicEnemyAttackRange: 3
   maxHits: 2
+  timeToDestroyEnemy: 0.1

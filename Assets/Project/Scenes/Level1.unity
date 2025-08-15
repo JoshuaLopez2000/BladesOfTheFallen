@@ -310,7 +310,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -438,10 +438,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 11400000, guid: 0b506fbe201052e4c9317205011c24b5, type: 2}
   basicEnemyPrefab: {fileID: 2137659063261253761, guid: a8fcdb27cd353f347b4edc0bbec890b7, type: 3}
-  mediumEnemyPrefab: {fileID: 0}
+  mediumEnemyPrefab: {fileID: 2137659063261253761, guid: 4cdaf969a0617ed47b448f438bf4094a, type: 3}
   hardEnemyPrefab: {fileID: 0}
   distanceFromPlayer: 10
-  spawnInterval: 5
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -2501,6 +2500,34 @@ PrefabInstance:
     - target: {fileID: 7712174917163369061, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1319743689}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: GoToMainMenu
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GameManagerMono, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8075712988921383550, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 8154655155752602759, guid: 3732fc86652507a46a000e8be4fa17cb, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size

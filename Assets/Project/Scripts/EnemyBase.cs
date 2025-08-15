@@ -8,33 +8,23 @@ public abstract class EnemyBase : MonoBehaviour
     [SerializeField] protected Renderer enemyRenderer;
 
     protected float attackRange;
-    protected float speed;
     protected int maxHits;
     protected float distanceBetweenEnemies;
     protected int enemyLives;
     protected bool getHit = false, resetting = false;
 
+    protected Color redColor = new Color32(133, 28, 4, 255);
+    protected Color yellowColor = new Color32(255, 198, 0, 255);
+
     public virtual void Start()
     {
         attackRange = gameManager.basicEnemyAttackRange;
-        speed = gameManager.basicEnemySpeed;
         maxHits = gameManager.maxHits;
         distanceBetweenEnemies = gameManager.distanceBetweenEnemies;
 
         player = GameObject.FindWithTag("Player");
         Vector3 direction = (player.transform.position - transform.position).normalized;
         transform.rotation = Quaternion.LookRotation(direction);
-
-        enemyLives = Random.Range(1, maxHits + 1);
-
-        if (enemyLives > 1)
-        {
-            SetColor(Color.green);
-        }
-        else
-        {
-            SetColor(Color.red);
-        }
     }
 
     public abstract void Hit();
@@ -47,10 +37,10 @@ public abstract class EnemyBase : MonoBehaviour
         enemyRenderer.SetPropertyBlock(block);
     }
 
-    protected void Die()
+    protected void Die(float time)
     {
         gameManager.enemiesKilled++;
-        Destroy(gameObject, gameManager.timeToDestroyEnemy);
+        Destroy(gameObject, time);
     }
 
     protected IEnumerator WaitAndReset(float waitTime)
