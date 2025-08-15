@@ -42,7 +42,9 @@ public class EnemySpawner : MonoBehaviour
     {
         if (totalKilled == 10)
             gameManager.DecreaseSpawnInterval();
-        else if (totalKilled == 30)
+        else if (totalKilled == 20)
+            gameManager.DecreaseSpawnInterval();
+        else if (totalKilled == 35)
             gameManager.DecreaseSpawnInterval();
     }
 
@@ -58,6 +60,8 @@ public class EnemySpawner : MonoBehaviour
 
         int sideSpawn = Random.Range(1, 4);
         int enemyType = Random.Range(0, 2); // 0: Basic, 1: Medium
+        int dontSpawn = Random.Range(0, 10); // 30% chance to not spawn
+        if (dontSpawn < 3) return;
         switch (sideSpawn)
         {
             case 1:

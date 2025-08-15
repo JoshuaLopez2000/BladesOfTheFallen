@@ -50,11 +50,11 @@ public class GameManagerSO : ScriptableObject
     public float distanceBetweenEnemies = 0.5f;
 
     //BasicEnemy
-    public float basicEnemySpeed = 1.0f;
     public float basicEnemyAttackRange = 2.0f;
     public int maxHits = 2;
     public float timeToDestroyEnemy = 0.1f;
     public float mediumEnemyTPDistance = 4.0f;
+    public float distanceAfterHitPlayer = 8.0f;
 
     private void OnEnable()
     {
@@ -102,9 +102,9 @@ public class GameManagerSO : ScriptableObject
         playerScore += amount;
     }
 
-    public void SetBasicEnemySpeed(float speed)
+    public void SetEnemySpeed(float speed)
     {
-        basicEnemySpeed = speed;
+        enemySpeed = speed;
     }
 
     public event Action<int> OnPlayerLivesChanged;
@@ -122,7 +122,7 @@ public class GameManagerSO : ScriptableObject
 
     public void DecreaseSpawnInterval()
     {
-        spawnInterval -= 0.5f;
+        spawnInterval -= 0.75f;
     }
 
     public event Action<float> OnTimeScaleChanged;

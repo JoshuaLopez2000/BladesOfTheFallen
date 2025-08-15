@@ -34,12 +34,12 @@ public class MenuPauseManager : MonoBehaviour
         if (gameManager.gameState == GameManagerSO.GameState.PAUSE)
         {
             gameManager.ChangeState(GameManagerSO.GameState.PLAYING);
-            gameManager.ExponentialResume(2f);
+            gameManager.ExponentialResume(0.5f);
         }
         else if (gameManager.gameState == GameManagerSO.GameState.PLAYING)
         {
             gameManager.ChangeState(GameManagerSO.GameState.PAUSE);
-            gameManager.ExponentialPause(2f);
+            gameManager.ExponentialPause(0.5f);
         }
     }
 

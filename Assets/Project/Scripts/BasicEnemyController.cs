@@ -11,7 +11,7 @@ public class BasicEnemyController : EnemyBase
     public override void Start()
     {
         base.Start();
-        speed = gameManager.basicEnemySpeed;
+        speed = gameManager.enemySpeed;
         attackCooldown = 3.0f;
         lastAttackTime = 0.0f;
         var block = new MaterialPropertyBlock();
@@ -21,12 +21,12 @@ public class BasicEnemyController : EnemyBase
 
         if (gameManager.enemiesKilled < 5)
         {
-            gameManager.SetBasicEnemySpeed(1.0f);
+            gameManager.SetEnemySpeed(1.5f);
             enemyLives = 1;
         }
         else if (gameManager.enemiesKilled < 10)
         {
-            gameManager.SetBasicEnemySpeed(2.0f);
+            gameManager.SetEnemySpeed(2.5f);
             if (Random.value < 0.3f)
             {
                 enemyLives = 2;
@@ -38,7 +38,7 @@ public class BasicEnemyController : EnemyBase
         }
         else
         {
-            gameManager.SetBasicEnemySpeed(3.0f);
+            gameManager.SetEnemySpeed(3.5f);
             if (Random.value < 0.65f)
             {
                 enemyLives = 2;
@@ -48,6 +48,8 @@ public class BasicEnemyController : EnemyBase
                 enemyLives = 1;
             }
         }
+
+        Debug.Log("Basic Enemy Speed: " + speed);
 
         if (enemyLives > 1)
         {
@@ -84,6 +86,13 @@ public class BasicEnemyController : EnemyBase
         {
             StartCoroutine(WaitAndReset(0.5f));
         }
+    }
+
+    public override void GiveSpace(int lives)
+    {
+        base.GiveSpace(lives);
+        enemyAnimator.SetTrigger("GetHit");
+        getHit = true;
     }
 
     public override void Hit()

@@ -3046,6 +3046,10 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 338863134672941516, guid: 791d3aa496139c24884d6fb78b0ea0c7, type: 3}
+      propertyPath: floatingTextPrefab
+      value: 
+      objectReference: {fileID: 8121793079015607573, guid: dee007c9bbb106b45a738961c0b5e343, type: 3}
+    - target: {fileID: 338863134672941516, guid: 791d3aa496139c24884d6fb78b0ea0c7, type: 3}
       propertyPath: 'slashs.Array.data[0]'
       value: 
       objectReference: {fileID: 8300000, guid: 5c5c1a86a86aa6e4aa90a005e9b18c5e, type: 3}

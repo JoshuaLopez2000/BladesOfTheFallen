@@ -19,6 +19,13 @@ public class PlayerController : MonoBehaviour
     private int attackId = 0;
     private bool playerCanHit = true, resetting = false;
 
+    private float parryCooldown = 3f;
+    private float lastParryTime = 0f;
+
+    public GameObject floatingTextPrefab;
+
+    private int combo = 0;
+
     private void Awake()
     {
         instance = this;
@@ -41,7 +48,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(transform.position + Vector3.up * 0.2f, -transform.forward * attackRange, Color.blue);
         if (!playerCanHit && !resetting)
         {
-            StartCoroutine(WaitAndReset(2f));
+            StartCoroutine(WaitAndReset(0.8f));
         }
 
         if (gameManager.hasEspecialHability)
@@ -58,6 +65,21 @@ public class PlayerController : MonoBehaviour
             playerInkWaveRenderer.SetPropertyBlock(block);
             katanaInkWaveRenderer.SetPropertyBlock(block);
         }
+
+        if (Time.time - lastAttackTime > 1.0f)
+        {
+            combo = 0;
+        }
+    }
+
+    public void SpawnCombo()
+    {
+        if (combo < 10)
+        {
+            return;
+        }
+        GameObject instance = Instantiate(floatingTextPrefab, transform.position + Vector3.up * 6, Quaternion.identity);
+        instance.GetComponent<FloatingText>().Initialize($"Combo x{combo}", Color.white);
     }
 
     public void inputRight()
@@ -84,8 +106,6 @@ public class PlayerController : MonoBehaviour
         if (playerCanHit)
         {
             PerformParry();
-            playerCanHit = false;
-            animator.SetBool("HitEnemy", false); //TODO: Remove and implement parry 
         }
     }
 
@@ -111,11 +131,75 @@ public class PlayerController : MonoBehaviour
         audioSource.PlayOneShot(slashs[Random.Range(0, slashs.Count)]);
     }
 
+    private void KeepCombo()
+    {
+        combo++;
+        SpawnCombo();
+    }
+
     void PerformParry()
     {
+        if (Time.time - lastParryTime > parryCooldown)
+        {
+            lastParryTime = Time.time;
+        }
+        else
+        {
+            return;
+        }
+        RaycastHit hitForward, hitBackward;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out hitForward, attackRange / 2))
+        {
+            if (hitForward.collider.CompareTag("Enemy"))
+            {
+                EnemyBase enemy = hitForward.collider.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.Hit();
+                    animator.SetBool("HitEnemy", true);
+                }
+                else
+                {
+                    Debug.Log("Raycast hit, but not an enemy");
+                }
+
+                Debug.Log("Enemy hit on raycast: " + hitForward.collider.name);
+
+                playerCanHit = true;
+            }
+        }
+        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, -transform.forward, out hitBackward, attackRange / 2))
+        {
+            if (hitBackward.collider.CompareTag("Enemy"))
+            {
+                EnemyBase enemy = hitBackward.collider.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.Hit();
+                    animator.SetBool("HitEnemy", true);
+                }
+                else
+                {
+                    Debug.Log("Raycast hit, but not an enemy");
+                }
+
+                Debug.Log("Enemy hit on raycast: " + hitBackward.collider.name);
+
+                playerCanHit = true;
+            }
+        }
+
         animator.SetTrigger("Parry");
         audioSource.PlayOneShot(parrySound);
-        //TODO: Implement parry logic
+        if (!playerCanHit)
+        {
+            combo = 0;
+            animator.SetBool("HitEnemy", false);
+        }
+        else
+        {
+            KeepCombo();
+        }
     }
     void PerformSlash()
     {
@@ -161,7 +245,12 @@ public class PlayerController : MonoBehaviour
         animator.SetTrigger("Attack");
         if (!playerCanHit)
         {
+            combo = 0;
             animator.SetBool("HitEnemy", false);
+        }
+        else
+        {
+            KeepCombo();
         }
     }
 

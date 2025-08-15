@@ -37,9 +37,9 @@ public abstract class EnemyBase : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction);
     }
 
-    private void GiveSpace(int lives)
+    public virtual void GiveSpace(int lives)
     {
-        float pushBackDistance = 10.0f;
+        float pushBackDistance = gameManager.distanceAfterHitPlayer;
 
         Vector3 pushBack = -transform.forward * pushBackDistance;
 

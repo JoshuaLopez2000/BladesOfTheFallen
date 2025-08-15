@@ -14,7 +14,7 @@ public class MediumEnemyController : EnemyBase
         base.Start();
         attackCooldown = 3.0f;
         lastAttackTime = 0.0f;
-        speed = gameManager.basicEnemySpeed;
+        speed = gameManager.enemySpeed;
         enemyLives = 3;
 
         var block = new MaterialPropertyBlock();
