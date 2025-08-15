@@ -1,14 +1,29 @@
 using System.Collections;
+using NUnit.Framework;
 using UnityEngine;
 
 public class GameManagerMono : MonoBehaviour
 {
     public static GameManagerMono Instance;
+    public GameManagerSO gameManager;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        switch (gameManager.gameState)
+        {
+            case GameManagerSO.GameState.INIT:
+                break;
+            case GameManagerSO.GameState.PLAYING:
+                StartCoroutine(ExponentialResumeCoroutine(1.0f));
+                break;
+            case GameManagerSO.GameState.PAUSE:
+                break;
+            case GameManagerSO.GameState.GAME_OVER:
+                break;
+        }
     }
 
     public IEnumerator ExponentialPauseCoroutine(float duration, System.Action<float> callback = null)
@@ -69,5 +84,10 @@ public class GameManagerMono : MonoBehaviour
 
         Time.timeScale = 1f;
         callback?.Invoke(Time.timeScale);
+    }
+
+    public void Reset()
+    {
+        gameManager.ResetGame();
     }
 }

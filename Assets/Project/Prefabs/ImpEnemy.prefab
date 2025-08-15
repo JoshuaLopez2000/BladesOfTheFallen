@@ -497,9 +497,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bea861545f353a341b035ebb168d07d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyRenderer: {fileID: 287580115372419203}
   gameManager: {fileID: 11400000, guid: 0b506fbe201052e4c9317205011c24b5, type: 2}
-  outlineRenderer: {fileID: 287580115372419203}
+  enemyRenderer: {fileID: 287580115372419203}
+  enemyAnimator: {fileID: 2120513692851985330}
 --- !u!1 &2257777959519833297
 GameObject:
   m_ObjectHideFlags: 0

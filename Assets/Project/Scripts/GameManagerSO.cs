@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [CreateAssetMenu(fileName = "GameManagerSO", menuName = "Scriptable Objects/GameManagerSO")]
 public class GameManagerSO : ScriptableObject
@@ -30,7 +31,7 @@ public class GameManagerSO : ScriptableObject
 
 
     //Game
-    public int maxEnemies = 5;
+    public int level = 1;
     public int enemiesKilled = 0;
     public float spawnInterval = 3.0f;
     public float enemySpeed = 1.0f;
@@ -41,26 +42,32 @@ public class GameManagerSO : ScriptableObject
     public float basicEnemySpeed = 1.0f;
     public float basicEnemyAttackRange = 2.0f;
     public int maxHits = 2;
+    public float timeToDestroyEnemy = 0.1f;
 
     private void OnEnable()
     {
         gameState = GameState.PLAYING;
 
         //recover from a file if exist, else reset to default values
+        level = 1;
         playerLives = 3;
         playerScore = 0;
-        maxEnemies = 5;
         spawnInterval = 3.0f;
         enemySpeed = 1.0f;
+        enemiesKilled = 0;
     }
 
     public void ResetGame()
     {
+        gameState = GameState.PLAYING;
+
         playerLives = 3;
         playerScore = 0;
-        maxEnemies = 5;
         spawnInterval = 3.0f;
         enemySpeed = 1.0f;
+        enemiesKilled = 0;
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
     }
 
     public void IncreaseScore(int amount)

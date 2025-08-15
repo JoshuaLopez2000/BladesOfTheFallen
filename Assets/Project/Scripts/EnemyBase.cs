@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public abstract class EnemyBase : MonoBehaviour
@@ -11,6 +12,7 @@ public abstract class EnemyBase : MonoBehaviour
     protected int maxHits;
     protected float distanceBetweenEnemies;
     protected int enemyLives;
+    protected bool getHit = false, resetting = false;
 
     public virtual void Start()
     {
@@ -47,6 +49,15 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected void Die()
     {
-        Destroy(gameObject);
+        gameManager.enemiesKilled++;
+        Destroy(gameObject, gameManager.timeToDestroyEnemy);
+    }
+
+    protected IEnumerator WaitAndReset(float waitTime)
+    {
+        resetting = true;
+        yield return new WaitForSeconds(waitTime);
+        getHit = false;
+        resetting = false;
     }
 }

@@ -7,6 +7,9 @@ public class PlayerController : MonoBehaviour
     public GameManagerSO gameManager;
 
     public static PlayerController instance;
+    public AudioSource audioSource;
+    public List<AudioClip> slashs;
+    public AudioClip missSound, parrySound;
     public Animator animator;
     public Material inkWaveMaterial;
     private float attackRange = 2f, maxApproachDistance = 2.0f;
@@ -105,11 +108,13 @@ public class PlayerController : MonoBehaviour
             attackIds.Shuffle();
         }
         attackId = newAttackId;
+        audioSource.PlayOneShot(slashs[Random.Range(0, slashs.Count)]);
     }
 
     void PerformParry()
     {
         animator.SetTrigger("Parry");
+        audioSource.PlayOneShot(parrySound);
         //TODO: Implement parry logic
     }
     void PerformSlash()
