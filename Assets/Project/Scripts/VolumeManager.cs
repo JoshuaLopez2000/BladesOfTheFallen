@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class VolumeManager : MonoBehaviour
 {
     private string fileName = "audioSettings.json";
+    public Slider mainVolume;
     public Slider musicVolume;
     public Slider SFxVolume;
     public AudioMixer globalAudioMixer;
@@ -20,14 +21,22 @@ public class VolumeManager : MonoBehaviour
 
     private void OnEnable()
     {
+        mainVolume.onValueChanged.AddListener(OnMainVolumeChange);
         musicVolume.onValueChanged.AddListener(OnMusicVolumeChange);
         SFxVolume.onValueChanged.AddListener(OnSFxVolumeChange);
     }
 
     private void OnDisable()
     {
+        mainVolume.onValueChanged.RemoveListener(OnMainVolumeChange);
         musicVolume.onValueChanged.RemoveListener(OnMusicVolumeChange);
         SFxVolume.onValueChanged.RemoveListener(OnSFxVolumeChange);
+    }
+
+    public void OnMainVolumeChange(float volume)
+    {
+        SetMixerVolume("MasterVolume", volume);
+        tmpVolumes.main = volume;
     }
 
     public void OnMusicVolumeChange(float volume)
@@ -72,22 +81,25 @@ public class VolumeManager : MonoBehaviour
             tmpVolumes = new AudioVolumes();
         }
 
-        SFxVolume.value = tmpVolumes.SFx;
-        SetMixerVolume("SFxVolume", tmpVolumes.SFx);
+        mainVolume.value = tmpVolumes.main;
+        SetMixerVolume("MasterVolume", tmpVolumes.main);
 
         musicVolume.value = tmpVolumes.music;
         SetMixerVolume("MusicVolume", tmpVolumes.music);
+
+        SFxVolume.value = tmpVolumes.SFx;
+        SetMixerVolume("SFxVolume", tmpVolumes.SFx);
     }
 }
 
 [Serializable]
 public class AudioVolumes
 {
-    public float music;
-    public float SFx;
+    public float main, music, SFx;
 
     public AudioVolumes()
     {
+        main = 0.75f;
         music = 0.75f;
         SFx = 0.75f;
     }

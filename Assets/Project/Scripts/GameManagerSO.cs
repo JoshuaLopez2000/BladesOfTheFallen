@@ -75,4 +75,12 @@ public class GameManagerSO : ScriptableObject
         // Show pause menu UI
         return true;
     }
+
+    public enum GameState
+    {
+        INIT,
+        PLAYING,
+        PAUSE,
+        GAME_OVER
+    }
 }
