@@ -11,6 +11,7 @@ public abstract class EnemyBase : MonoBehaviour
     protected int maxHits;
     protected float distanceBetweenEnemies;
     protected int enemyLives;
+    protected float speed;
     protected bool getHit = false, resetting = false;
 
     protected Color redColor = new Color32(133, 28, 4, 255);
@@ -26,15 +27,37 @@ public abstract class EnemyBase : MonoBehaviour
     {
         gameManager.OnPlayerLivesChanged -= GiveSpace;
     }
+
+    public virtual void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
+    {
+        player = playerTransform.gameObject;
+        speed = newSpeed;
+        enemyLives = newLives;
+        SetColor(initialColor);
+        
+        // Ensure we look at the player immediately
+        Vector3 direction = (player.transform.position - transform.position).normalized;
+        transform.rotation = Quaternion.LookRotation(direction);
+        
+        // Set internal references if needed (derived classes will handle their specific vars via this or their own Init)
+    }
+
     public virtual void Start()
     {
         attackRange = gameManager.basicEnemyAttackRange;
         maxHits = gameManager.maxHits;
         distanceBetweenEnemies = gameManager.distanceBetweenEnemies;
-
-        player = GameObject.FindWithTag("Player");
-        Vector3 direction = (player.transform.position - transform.position).normalized;
-        transform.rotation = Quaternion.LookRotation(direction);
+        
+        // Fallback if Initialize wasn't called (e.g. placed in scene for testing)
+        if (player == null)
+        {
+            player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                Vector3 direction = (player.transform.position - transform.position).normalized;
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
+        }
     }
 
     public virtual void GiveSpace(int lives)

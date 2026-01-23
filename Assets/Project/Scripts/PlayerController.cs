@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public GameManagerSO gameManager;
+    public InputReaderSO inputReader;
 
     public static PlayerController instance;
     public AudioSource audioSource;
@@ -29,8 +30,28 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         instance = this;
-
     }
+
+    private void OnEnable()
+    {
+        if (inputReader != null)
+        {
+            inputReader.OnSlashRight += HandleSlashRight;
+            inputReader.OnSlashLeft += HandleSlashLeft;
+            inputReader.OnParry += HandleParry;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (inputReader != null)
+        {
+            inputReader.OnSlashRight -= HandleSlashRight;
+            inputReader.OnSlashLeft -= HandleSlashLeft;
+            inputReader.OnParry -= HandleParry;
+        }
+    }
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -82,17 +103,16 @@ public class PlayerController : MonoBehaviour
         instance.GetComponent<FloatingText>().Initialize($"Combo x{combo}", Color.white);
     }
 
-    public void inputRight()
+    private void HandleSlashRight()
     {
         if (playerCanHit)
         {
             transform.rotation = Quaternion.Euler(0, 90, 0);
             PerformSlash();
         }
-
     }
 
-    public void inputLeft()
+    private void HandleSlashLeft()
     {
         if (playerCanHit)
         {
@@ -101,12 +121,30 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void inputUp()
+    private void HandleParry()
     {
         if (playerCanHit)
         {
             PerformParry();
         }
+    }
+
+    public void inputRight()
+    {
+        if (inputReader != null) inputReader.RaiseSlashRight();
+        else HandleSlashRight();
+    }
+
+    public void inputLeft()
+    {
+        if (inputReader != null) inputReader.RaiseSlashLeft();
+        else HandleSlashLeft();
+    }
+
+    public void inputUp()
+    {
+        if (inputReader != null) inputReader.RaiseParry();
+        else HandleParry();
     }
 
     private void getAttackId()
