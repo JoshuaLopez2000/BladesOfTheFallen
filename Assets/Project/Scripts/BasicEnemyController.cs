@@ -10,30 +10,33 @@ public class BasicEnemyController : EnemyBase
 
     public override void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
+        // Set visual style first (Switch 0 for Basic) to match original execution order
+        enemyRenderer.GetPropertyBlock(propBlock);
+        propBlock.SetFloat("_Switch", 0);
+        enemyRenderer.SetPropertyBlock(propBlock);
+
         base.Initialize(playerTransform, newSpeed, newLives, initialColor);
-        // Ensure the shader switch is set correctly for this enemy type
-        var block = new MaterialPropertyBlock();
-        enemyRenderer.GetPropertyBlock(block);
-        block.SetFloat("_Switch", 0);
-        enemyRenderer.SetPropertyBlock(block);
     }
 
     public override void Start()
     {
+        if (isInitialized) 
+        {
+            // Just initialize local cooldowns if skipped base.Start logic
+            attackCooldown = 3.0f;
+            lastAttackTime = 0.0f;
+            return;
+        }
+
         base.Start();
-        // Default values if not initialized via Spawner (e.g. placed in scene)
         if (speed == 0) speed = gameManager.enemySpeed;
         
         attackCooldown = 3.0f;
         lastAttackTime = 0.0f;
-        
-        // If Initialize wasn't called, we might need to set the switch here too, 
-        // but it's safe to set it in both or just check.
-        // For simplicity, we ensure the visual state is correct here as fallback.
-        var block = new MaterialPropertyBlock();
-        enemyRenderer.GetPropertyBlock(block);
-        block.SetFloat("_Switch", 0);
-        enemyRenderer.SetPropertyBlock(block);
+
+        enemyRenderer.GetPropertyBlock(propBlock);
+        propBlock.SetFloat("_Switch", 0);
+        enemyRenderer.SetPropertyBlock(propBlock);
     }
 
     void Update()

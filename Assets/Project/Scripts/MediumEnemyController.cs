@@ -11,15 +11,23 @@ public class MediumEnemyController : EnemyBase
 
     public override void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
+        // Set visual style first (Switch 1 for Medium) to match original execution order
+        enemyRenderer.GetPropertyBlock(propBlock);
+        propBlock.SetFloat("_Switch", 1);
+        enemyRenderer.SetPropertyBlock(propBlock);
+
         base.Initialize(playerTransform, newSpeed, newLives, initialColor);
-        var block = new MaterialPropertyBlock();
-        enemyRenderer.GetPropertyBlock(block);
-        block.SetFloat("_Switch", 1);
-        enemyRenderer.SetPropertyBlock(block);
     }
 
     public override void Start()
     {
+        if (isInitialized)
+        {
+            attackCooldown = 3.0f;
+            lastAttackTime = 0.0f;
+            return;
+        }
+
         base.Start();
         attackCooldown = 3.0f;
         lastAttackTime = 0.0f;
@@ -27,13 +35,9 @@ public class MediumEnemyController : EnemyBase
         if (speed == 0) speed = gameManager.enemySpeed;
         if (enemyLives == 0) enemyLives = 3;
 
-        var block = new MaterialPropertyBlock();
-        enemyRenderer.GetPropertyBlock(block);
-        block.SetFloat("_Switch", 1);
-        enemyRenderer.SetPropertyBlock(block);
-
-        // Fallback color if not initialized
-        // SetColor(new Color(0.196f, 0.059f, 0.207f)); // Optional fallback
+        enemyRenderer.GetPropertyBlock(propBlock);
+        propBlock.SetFloat("_Switch", 1);
+        enemyRenderer.SetPropertyBlock(propBlock);
     }
 
     void Update()

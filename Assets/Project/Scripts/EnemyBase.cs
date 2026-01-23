@@ -17,6 +17,13 @@ public abstract class EnemyBase : MonoBehaviour
     protected Color redColor = new Color32(133, 28, 4, 255);
     protected Color yellowColor = new Color32(255, 198, 0, 255);
 
+    protected MaterialPropertyBlock propBlock;
+    protected bool isInitialized = false;
+
+    protected virtual void Awake()
+    {
+        propBlock = new MaterialPropertyBlock();
+    }
 
     private void OnEnable()
     {
@@ -30,24 +37,31 @@ public abstract class EnemyBase : MonoBehaviour
 
     public virtual void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
+        isInitialized = true;
         player = playerTransform.gameObject;
         speed = newSpeed;
         enemyLives = newLives;
-        SetColor(initialColor);
         
-        // Ensure we look at the player immediately
-        Vector3 direction = (player.transform.position - transform.position).normalized;
-        transform.rotation = Quaternion.LookRotation(direction);
-        
-        // Set internal references if needed (derived classes will handle their specific vars via this or their own Init)
-    }
-
-    public virtual void Start()
-    {
+        // Ensure stats are initialized
         attackRange = gameManager.basicEnemyAttackRange;
         maxHits = gameManager.maxHits;
         distanceBetweenEnemies = gameManager.distanceBetweenEnemies;
         
+        // Ensure we look at the player immediately
+        Vector3 direction = (player.transform.position - transform.position).normalized;
+        transform.rotation = Quaternion.LookRotation(direction);
+
+        SetColor(initialColor);
+    }
+
+    public virtual void Start()
+    {
+        if (isInitialized) return; // Skip default setup if already initialized
+
+        attackRange = gameManager.basicEnemyAttackRange;
+        maxHits = gameManager.maxHits;
+        distanceBetweenEnemies = gameManager.distanceBetweenEnemies;
+
         // Fallback if Initialize wasn't called (e.g. placed in scene for testing)
         if (player == null)
         {
@@ -77,10 +91,9 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected void SetColor(Color color)
     {
-        var block = new MaterialPropertyBlock();
-        enemyRenderer.GetPropertyBlock(block);
-        block.SetColor("_Color", color);
-        enemyRenderer.SetPropertyBlock(block);
+        enemyRenderer.GetPropertyBlock(propBlock);
+        propBlock.SetColor("_Color", color);
+        enemyRenderer.SetPropertyBlock(propBlock);
     }
 
     protected void Die(float time)
