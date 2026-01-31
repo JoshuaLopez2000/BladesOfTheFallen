@@ -2,7 +2,7 @@
 
 > A stylish, high-octane action game featuring a unique Chinese ink painting aesthetic. Master the blade, parry your foes, and survive the endless waves of the fallen.
 
-![Game Banner](http://placehold.it/800x300?text=Blades+of+the+Fallen+Banner) 
+![Game Banner](https://github.com/user-attachments/assets/f3ef9698-79a1-4042-8272-bc433e92e0ac) 
 
 ## Overview
 
