@@ -4,18 +4,19 @@ using UnityEngine.InputSystem;
 
 public class JumpToEnd : MonoBehaviour
 {
-    public PlayableDirector director;
+    [SerializeField] private PlayableDirector director;
 
-    void Update()
+    private void Update()
     {
-        if (Touchscreen.current != null &&
-            Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        if (director == null || Touchscreen.current == null)
         {
-            if (director != null)
-            {
-                director.time = director.duration;
-                director.Evaluate();
-            }
+            return;
+        }
+
+        if (Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        {
+            director.time = director.duration;
+            director.Evaluate();
         }
     }
 }

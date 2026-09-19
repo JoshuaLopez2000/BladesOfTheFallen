@@ -1,27 +1,31 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class ShowFPS : MonoBehaviour
 {
-    public TextMeshProUGUI fpsText;
-    private List<float> fpsHistory = new List<float>();
-    // Update is called once per frame
-    void Update()
+    [SerializeField] private TextMeshProUGUI fpsText;
+    [SerializeField, Min(0.1f)] private float refreshInterval = 0.25f;
+
+    private float elapsedTime;
+    private int frameCount;
+
+    private void Update()
     {
-        //average frames per second
-        float fps = 1.0f / Time.deltaTime;
-        fpsHistory.Add(fps);
-        if (fpsHistory.Count > 100)
+        elapsedTime += Time.unscaledDeltaTime;
+        frameCount++;
+
+        if (elapsedTime < refreshInterval)
         {
-            fpsHistory.RemoveAt(0);
+            return;
         }
-        float averageFps = 0;
-        foreach (float f in fpsHistory)
+
+        if (fpsText != null)
         {
-            averageFps += f;
+            float framesPerSecond = frameCount / elapsedTime;
+            fpsText.text = $"FPS: {framesPerSecond:0}";
         }
-        averageFps /= fpsHistory.Count;
-        fpsText.text = "FPS: " + Mathf.Round(averageFps);
+
+        elapsedTime = 0f;
+        frameCount = 0;
     }
 }

@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
-[CreateAssetMenu(fileName = "InputReaderSO", menuName = "Scriptable Objects/InputReaderSO")]
+[CreateAssetMenu(fileName = "InputReader", menuName = "Blades of the Fallen/Input Reader")]
 public class InputReaderSO : ScriptableObject
 {
     public event Action OnSlashRight;

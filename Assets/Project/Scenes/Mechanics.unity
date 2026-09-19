@@ -859,7 +859,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1988619484}
-        m_TargetAssemblyTypeName: PauseFade, Assembly-CSharp
+        m_TargetAssemblyTypeName: PauseFade, BladesOfTheFallen.Runtime
         m_MethodName: TogglePause
         m_Mode: 1
         m_Arguments:
@@ -953,7 +953,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   basicEnemyPrefab: {fileID: 741493099136509316, guid: 692f979370623e64598aae961dad74cb, type: 3}
-  distanceFromPlayer: 10
 --- !u!1 &380197917
 GameObject:
   m_ObjectHideFlags: 0
@@ -2365,67 +2364,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 848738071}
   m_CullTransparentMesh: 1
---- !u!1001 &849970443
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4776146538496846718, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_Name
-      value: TheVastLand
-      objectReference: {fileID: 0}
-    - target: {fileID: 4776146538496846718, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -15.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 79.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7771096251922242690, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: be9461e4fbfec694f8798a9aec97400f, type: 3}
 --- !u!1 &879624760
 GameObject:
   m_ObjectHideFlags: 0
@@ -3405,7 +3343,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   basicEnemyPrefab: {fileID: 741493099136509316, guid: 692f979370623e64598aae961dad74cb, type: 3}
-  distanceFromPlayer: 10
 --- !u!1 &1319743685
 GameObject:
   m_ObjectHideFlags: 0
@@ -4088,7 +4025,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 5866666021479511853}
-  inkWaveMaterial: {fileID: 2100000, guid: 4c275f958e7c84c49b9dcf20de73c068, type: 2}
   attackRange: 5
   maxApproachDistance: 2
 --- !u!95 &1805087403
@@ -4296,7 +4232,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 1932555227}
-  inkWaveMaterial: {fileID: 2100000, guid: 4c275f958e7c84c49b9dcf20de73c068, type: 2}
   attackRange: 2
   maxApproachDistance: 2
 --- !u!95 &1932555227 stripped
@@ -4744,7 +4679,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 5866666021479511853}
-  inkWaveMaterial: {fileID: 2100000, guid: 4c275f958e7c84c49b9dcf20de73c068, type: 2}
   attackRange: 5
   maxApproachDistance: 2
 --- !u!1 &2071983757
@@ -4952,7 +4886,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1988619484}
-        m_TargetAssemblyTypeName: PauseFade, Assembly-CSharp
+        m_TargetAssemblyTypeName: PauseFade, BladesOfTheFallen.Runtime
         m_MethodName: TogglePause
         m_Mode: 1
         m_Arguments:
@@ -5014,7 +4948,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 5866666021363523679}
-  inkWaveMaterial: {fileID: 2100000, guid: 4c275f958e7c84c49b9dcf20de73c068, type: 2}
   attackRange: 2
   maxApproachDistance: 2
 --- !u!54 &2123964992
@@ -5264,8 +5197,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2069658754}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: inputRight
+        m_TargetAssemblyTypeName: PlayerController, BladesOfTheFallen.Runtime
+        m_MethodName: InputRight
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -48270,8 +48203,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2069658754}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: inputLeft
+        m_TargetAssemblyTypeName: PlayerController, BladesOfTheFallen.Runtime
+        m_MethodName: InputLeft
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

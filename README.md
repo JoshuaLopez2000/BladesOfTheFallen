@@ -1,79 +1,77 @@
 # Blades of the Fallen
 
-> A stylish, high-octane action game featuring a unique Chinese ink painting aesthetic. Master the blade, parry your foes, and survive the endless waves of the fallen.
+> A mobile action game built around directional attacks, parries, escalating enemy waves, and a Chinese ink-painting visual style.
 
-![Game Banner](https://github.com/user-attachments/assets/f3ef9698-79a1-4042-8272-bc433e92e0ac) 
+![Game banner](https://github.com/user-attachments/assets/f3ef9698-79a1-4042-8272-bc433e92e0ac)
 
 ## Overview
 
-**Blades of the Fallen** is an endless action fighter built in **Unity**. Players control a lone warrior defending against encroaching enemies from multiple sides. The game emphasizes rhythm, reaction speed, and precision, wrapped in a visually striking "Ink Slash" rendering style.
+**Blades of the Fallen** is an endless action fighter made with Unity 6 and the Universal Render Pipeline. The player defends a lone warrior from enemies approaching on both sides. Short gesture inputs drive attacks and parries, while hit stop, camera feedback, combo text, and material effects reinforce combat timing.
 
-## Key Features
+## Gameplay
 
-*   **Dynamic Combat System:**
-    *   **Directional Attacks:** Slash enemies approaching from the **Left** or **Right**.
-    *   **Parry Mechanic:** Deflect incoming attacks with precise timing to maintain your flow.
-    *   **Combo System:** Build up your combo meter with consecutive hits; missing or getting hit resets your momentum.
-*   **Distinct Enemy Types:**
-    *   **Basic Enemies:** Relentless attackers that swarm the player.
-    *   **Medium Enemies:** Agile foes that **teleport** behind the player after taking damage, requiring quick reflexes to finish off.
-    *   **Visual Feedback:** Enemies change color (Purple -> Yellow -> Red) to indicate health states using optimized shader properties.
-*   **Game Feel:**
-    *   **Hit Stop / Time Freeze:** Impact frames slow down time (`HitTimeEffect`) to accentuate powerful strikes.
-    *   **Camera Shake & Pushback:** Visually responsive combat feedback.
-*   **Stylized Graphics:** A custom "Chinese Ink Painting" rendering pipeline that unifies character models, effects, and the environment.
+- Swipe left or right to attack in that direction.
+- Swipe up to parry nearby enemies.
+- Maintain a combo by landing consecutive attacks.
+- Adapt to medium enemies that survive multiple hits and reposition behind the player.
+- Survive increasingly frequent enemy spawns and pursue a persistent high score.
 
-## Technical Highlights (Architecture)
+## Technical highlights
 
-This project demonstrates clean, scalable Unity architecture suitable for professional development.
+- **Event-driven state:** `GameManagerSO` owns the current score, lives, difficulty state, and gameplay events. UI and enemies subscribe only to the events they need.
+- **Separated runtime assembly:** project-owned gameplay code is isolated in `BladesOfTheFallen.Runtime`; Edit Mode tests compile in a separate test assembly.
+- **Allocation-conscious rendering:** enemy and player shader overrides reuse `MaterialPropertyBlock` instances instead of cloning materials or allocating every frame.
+- **Shared enemy behavior:** `EnemyBase` centralizes targeting, movement, spacing, hit recovery, score registration, and shader updates. Enemy subclasses contain only type-specific behavior.
+- **Bounded world streaming:** `TerrainManager` keeps a small window of terrain tiles around the player and destroys tiles outside that window.
+- **Defensive persistence:** high-score and audio-setting reads and writes fail gracefully when storage is unavailable or data is invalid.
+- **Time-scale ownership:** pause, resume, and hit-stop transitions are coordinated by one runtime component so competing coroutines cannot fight over `Time.timeScale`.
 
-### 1. ScriptableObject-Driven Architecture
-The game uses `GameManagerSO` as a central, data-driven hub for state management. This decouples logic from the scene hierarchy.
-*   **Observer Pattern:** Systems like `EnemyBase` subscribe to events (`OnPlayerLivesChanged`) to react dynamically (e.g., enemies backing off when the player takes damage).
-*   **State Management:** Lives, Score, and Game State are managed centrally, allowing for easy testing and persistence.
+See [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) for the runtime responsibilities and event flow.
 
-### 2. Optimized Rendering
-Instead of instantiating new Materials for every color change (which breaks batching), the project utilizes **`MaterialPropertyBlock`**.
-*   **Implementation:** `EnemyBase` and `PlayerController` modify shader properties (like `_Color` and `_Switch`) on the fly without memory overhead, ensuring high performance even with many active entities.
+## Project structure
 
-### 3. Scalable Enemy System
-*   **Polymorphism:** An abstract `EnemyBase` class handles common logic (movement, taking damage, event subscription), while derived classes like `MediumEnemyController` implement specific behaviors (teleportation, animation overrides).
+```text
+Assets/Project/
+├── Prefabs/                 Game-owned prefabs and UI
+├── Scenes/                  MainScreen, Level1, and development scenes
+├── Scriptable Objects/      Runtime configuration/state assets
+├── Scripts/                 Production C# assembly
+└── Tests/EditMode/          Fast state and utility tests
+```
 
-## Controls
+Third-party art, shaders, effects, and packages remain in their vendor folders under `Assets/`; project-authored gameplay code is kept under `Assets/Project`.
 
-The game is designed for mobile and is played using **gestures**:
+## Requirements
 
-| Action | Gesture | Description |
-| :--- | :--- | :--- |
-| **Attack Right** | `Swipe Right` | Slash enemies on the right. |
-| **Attack Left** | `Swipe Left` | Slash enemies on the left. |
-| **Parry** | `Swipe Up` | Block incoming attacks. |
+- Unity `6000.3.12f1` (the version recorded in `ProjectSettings/ProjectVersion.txt`)
+- Universal Render Pipeline 17
+- Unity Input System
+- TextMesh Pro / Unity UI
 
-## Getting Started
+Using the recorded editor version is recommended because opening the project in another Unity release can rewrite project and rendering settings.
 
-1.  **Prerequisites:**
-    *   Unity 6 (6000.0.66f1) or later.
-    *   URP (Universal Render Pipeline) support.
-2.  **Installation:**
-    *   Clone the repository.
-    *   Open the project in Unity Hub.
-    *   Open the main scene located in `Assets/Project/Scenes/`.
-3.  **Play:**
-    *   Press the Play button in the Editor to start the endless survival mode.
+## Run the project
 
-## Project Structure
+1. Clone the repository.
+2. Add the repository folder in Unity Hub.
+3. Open it with Unity `6000.3.12f1`.
+4. Open `Assets/Project/Scenes/MainScreen.unity`.
+5. Enter Play Mode.
 
-*   `Assets/Project/Scripts`: Core gameplay logic (Player, Enemies, Managers).
-*   `Assets/Project/Scriptable Objects`: Configuration and State assets.
-*   `Assets/Chinese Ink Painting Rendering`: Shaders and assets for the visual style.
+`MainScreen` and `Level1` are enabled in Build Settings. `Mechanics` is retained as a disabled development scene.
+
+## Validation
+
+The project includes Edit Mode coverage for score events, game-over transitions, spawn-interval clamping, and list shuffling. Run it from **Window > General > Test Runner > EditMode**.
+
+The main menu and gameplay scenes are also suitable for a short smoke test: launch from `MainScreen`, enter `Level1`, attack in both directions, parry, pause/resume, restart, and return to the menu.
 
 ## Credits
 
-*   **Development:** EEJANAI Team
-*   **Assets:**
-    *   *Chinese Ink Painting Rendering*
-    *   *FX_Ink slash(URP)*
-    *   *FreeSwordAnimations*
+- Development: EEJANAI Team
+- Chinese Ink Painting Rendering assets
+- FX Ink Slash (URP)
+- Free Sword Animations
+- Lean Touch / CW Common
 
----
-*This project is part of my portfolio demonstrating proficiency in Unity C#, Game Architecture, and Shader interaction.*
+Vendor documentation and notices are retained beside the imported assets where provided.

@@ -1,77 +1,136 @@
-using System;
 using System.Collections;
-using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+[DisallowMultipleComponent]
 public class GameManagerMono : MonoBehaviour
 {
-    public static GameManagerMono Instance;
-    public GameManagerSO gameManager;
+    [SerializeField] private GameManagerSO gameManager;
+
+    private Coroutine timeScaleCoroutine;
+
+    public static GameManagerMono Instance { get; private set; }
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
-
-        switch (gameManager.gameState)
+        if (Instance != null && Instance != this)
         {
-            case GameManagerSO.GameState.INIT:
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
+        switch (gameManager.CurrentState)
+        {
+            case GameManagerSO.GameState.Init:
                 break;
-            case GameManagerSO.GameState.PLAYING:
-                StartCoroutine(ExponentialResumeCoroutine(1.0f));
+            case GameManagerSO.GameState.Playing:
+                Resume(1f);
                 break;
-            case GameManagerSO.GameState.PAUSE:
+            case GameManagerSO.GameState.Paused:
                 break;
-            case GameManagerSO.GameState.GAME_OVER:
+            case GameManagerSO.GameState.GameOver:
                 break;
         }
     }
 
-    public IEnumerator ExponentialPauseCoroutine(float duration, System.Action<float> callback = null)
+    private void OnDestroy()
     {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
+    public void Pause(float duration, System.Action<float> callback = null)
+    {
+        StartTimeScaleTransition(ExponentialPauseCoroutine(duration, callback));
+    }
+
+    public void Resume(float duration, System.Action<float> callback = null)
+    {
+        StartTimeScaleTransition(ExponentialResumeCoroutine(duration, callback));
+    }
+
+    public void HitStop(float slowFactor, float duration, System.Action<float> callback = null)
+    {
+        StartTimeScaleTransition(HitTimeCoroutine(slowFactor, duration, callback));
+    }
+
+    private void StartTimeScaleTransition(IEnumerator transition)
+    {
+        if (timeScaleCoroutine != null)
+        {
+            StopCoroutine(timeScaleCoroutine);
+        }
+
+        timeScaleCoroutine = StartCoroutine(transition);
+    }
+
+    private IEnumerator ExponentialPauseCoroutine(float duration, System.Action<float> callback)
+    {
+        if (duration <= 0f)
+        {
+            SetTimeScale(0f, callback);
+            yield break;
+        }
+
         float t = 0f;
         float startScale = Time.timeScale;
 
         while (t < duration)
         {
             t += Time.unscaledDeltaTime;
-            Time.timeScale = Mathf.Exp(-5f * (t / duration));
-            callback?.Invoke(Time.timeScale);
+            float progress = Mathf.Clamp01(t / duration);
+            SetTimeScale(startScale * Mathf.Exp(-5f * progress), callback);
             yield return null;
         }
 
-        Time.timeScale = 0f;
-        callback?.Invoke(Time.timeScale);
+        SetTimeScale(0f, callback);
+        timeScaleCoroutine = null;
     }
 
-    public IEnumerator ExponentialResumeCoroutine(float duration, System.Action<float> callback = null)
+    private IEnumerator ExponentialResumeCoroutine(float duration, System.Action<float> callback)
     {
+        if (duration <= 0f)
+        {
+            SetTimeScale(1f, callback);
+            yield break;
+        }
+
         float t = 0f;
+        float startScale = Time.timeScale;
 
         while (t < duration)
         {
             t += Time.unscaledDeltaTime;
-            Time.timeScale = 1f - Mathf.Exp(-5f * (t / duration));
-            callback?.Invoke(Time.timeScale);
+            float progress = Mathf.Clamp01(t / duration);
+            float easedProgress = 1f - Mathf.Exp(-5f * progress);
+            SetTimeScale(Mathf.Lerp(startScale, 1f, easedProgress), callback);
             yield return null;
         }
 
-        Time.timeScale = 1f;
-        callback?.Invoke(Time.timeScale);
+        SetTimeScale(1f, callback);
+        timeScaleCoroutine = null;
     }
 
-
-    public IEnumerator HitTimeCoroutine(float slowFactor, float duration, System.Action<float> callback = null)
+    private IEnumerator HitTimeCoroutine(float slowFactor, float duration, System.Action<float> callback)
     {
+        if (duration <= 0f)
+        {
+            SetTimeScale(1f, callback);
+            yield break;
+        }
+
+        slowFactor = Mathf.Clamp01(slowFactor);
         float halfDuration = duration / 2f;
         float t = 0f;
 
         while (t < halfDuration)
         {
             t += Time.unscaledDeltaTime;
-            Time.timeScale = Mathf.Lerp(1f, slowFactor, t / halfDuration);
-            callback?.Invoke(Time.timeScale);
+            SetTimeScale(Mathf.Lerp(1f, slowFactor, Mathf.Clamp01(t / halfDuration)), callback);
             yield return null;
         }
 
@@ -79,24 +138,28 @@ public class GameManagerMono : MonoBehaviour
         while (t < halfDuration)
         {
             t += Time.unscaledDeltaTime;
-            Time.timeScale = Mathf.Lerp(slowFactor, 1f, t / halfDuration);
-            callback?.Invoke(Time.timeScale);
+            SetTimeScale(Mathf.Lerp(slowFactor, 1f, Mathf.Clamp01(t / halfDuration)), callback);
             yield return null;
         }
 
-        Time.timeScale = 1f;
-        callback?.Invoke(Time.timeScale);
+        SetTimeScale(1f, callback);
+        timeScaleCoroutine = null;
     }
 
-    public void Reset()
+    private static void SetTimeScale(float value, System.Action<float> callback)
+    {
+        Time.timeScale = value;
+        callback?.Invoke(value);
+    }
+
+    public void ResetGame()
     {
         gameManager.ResetGame();
     }
 
     public void GoToMainMenu()
     {
-        gameManager.ResetGame();
-        gameManager.ExponentialResume(1.0f);
+        gameManager.ResetSession();
         SceneManager.LoadSceneAsync("MainScreen", LoadSceneMode.Single);
     }
 }

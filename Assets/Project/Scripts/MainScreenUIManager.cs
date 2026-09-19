@@ -1,17 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System;
 using System.Collections.Generic;
 
 public class MainScreenUIManager : MonoBehaviour
 {
-    public GameObject configUI, creditsUI;
-    public Button configButton, creditsButton, playButton;
-    public List<Button> backButtons;
-    public String mainScene;
+    [SerializeField] private GameObject configUI;
+    [SerializeField] private GameObject creditsUI;
+    [SerializeField] private Button configButton;
+    [SerializeField] private Button creditsButton;
+    [SerializeField] private Button playButton;
+    [SerializeField] private List<Button> backButtons = new();
+    [SerializeField] private string mainScene;
 
-    void Start()
+    private void Start()
     {
         configButton.onClick.AddListener(ShowConfig);
         creditsButton.onClick.AddListener(ShowCredits);
@@ -20,6 +22,18 @@ public class MainScreenUIManager : MonoBehaviour
         foreach (Button backButton in backButtons)
         {
             backButton.onClick.AddListener(ShowMain);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        configButton.onClick.RemoveListener(ShowConfig);
+        creditsButton.onClick.RemoveListener(ShowCredits);
+        playButton.onClick.RemoveListener(ChangeScreen);
+
+        foreach (Button backButton in backButtons)
+        {
+            backButton.onClick.RemoveListener(ShowMain);
         }
     }
 
@@ -41,8 +55,8 @@ public class MainScreenUIManager : MonoBehaviour
         creditsUI.SetActive(false);
     }
 
-    void ChangeScreen()
+    private void ChangeScreen()
     {
-        SceneManager.LoadScene(mainScene, LoadSceneMode.Single);
+        SceneManager.LoadSceneAsync(mainScene, LoadSceneMode.Single);
     }
 }

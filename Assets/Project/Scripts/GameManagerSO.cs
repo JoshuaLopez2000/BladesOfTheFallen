@@ -1,17 +1,45 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
-[CreateAssetMenu(fileName = "GameManagerSO", menuName = "Scriptable Objects/GameManagerSO")]
+[CreateAssetMenu(fileName = "GameManager", menuName = "Blades of the Fallen/Game Manager")]
 public class GameManagerSO : ScriptableObject
 {
+    private const int DefaultPlayerLives = 3;
+    private const float DefaultSpawnInterval = 3f;
+    private const float DefaultEnemySpeed = 1f;
+    private const float MinimumSpawnInterval = 0.75f;
 
-    public GameState gameState = GameState.PLAYING;
+    [Header("Player")]
+    [SerializeField, Min(1)] private int playerLives = DefaultPlayerLives;
+    [SerializeField] private int _playerScore;
+    [SerializeField, Min(0)] private int scorePerEnemy = 10;
+    [SerializeField, Min(0)] private int scorePerHit = 5;
+    [FormerlySerializedAs("PlayerAttackRange")]
+    [SerializeField, Min(0f)] private float playerAttackRange = 8f;
+    [FormerlySerializedAs("PlayerMaxApproachDistance")]
+    [SerializeField, Min(0f)] private float playerMaxApproachDistance = 2f;
+    [FormerlySerializedAs("hasEspecialHability")]
+    [SerializeField] private bool hasSpecialAbility;
 
-    //Player
-    public int playerLives = 3;
-    public int _playerScore;
-    public int playerScore
+    [Header("Game")]
+    [SerializeField] private int _enemiesKilled;
+    [SerializeField, Min(MinimumSpawnInterval)] private float spawnInterval = DefaultSpawnInterval;
+    [SerializeField, Min(0f)] private float enemySpeed = DefaultEnemySpeed;
+    [SerializeField, Min(0f)] private float enemySpawnDistance = 10f;
+    [SerializeField, Min(0f)] private float distanceBetweenEnemies = 0.5f;
+
+    [Header("Enemies")]
+    [SerializeField, Min(0f)] private float basicEnemyAttackRange = 2f;
+    [FormerlySerializedAs("mediumEnemyTPDistance")]
+    [SerializeField, Min(0f)] private float mediumEnemyTeleportDistance = 4f;
+    [FormerlySerializedAs("distanceAfterHitPlayer")]
+    [SerializeField, Min(0f)] private float distanceAfterPlayerHit = 8f;
+
+    public GameState CurrentState { get; private set; } = GameState.Playing;
+    public int PlayerLives => playerLives;
+    public int PlayerScore
     {
         get => _playerScore;
         private set
@@ -20,136 +48,121 @@ public class GameManagerSO : ScriptableObject
             OnScoreChanged?.Invoke(_playerScore);
         }
     }
-
-    public event Action<int> OnScoreChanged;
-    public int scorePerEnemy = 10;
-    public int scorePerHit = 5;
-    public int scorePerPerfectHit = 15;
-    public float PlayerAttackRange = 8.0f;
-    public float PlayerMaxApproachDistance = 2.0f;
-    public bool hasEspecialHability = false;
-
-
-    //Game
-    public int level = 1;
-    public event Action<int> OnEnemiesKilledChanged;
-
-    public int _enemiesKilled;
-    public int enemiesKilled
+    public int ScorePerEnemy => scorePerEnemy;
+    public int ScorePerHit => scorePerHit;
+    public float PlayerAttackRange => playerAttackRange;
+    public float PlayerMaxApproachDistance => playerMaxApproachDistance;
+    public bool HasSpecialAbility => hasSpecialAbility;
+    public int EnemiesKilled
     {
         get => _enemiesKilled;
-        set
+        private set
         {
             _enemiesKilled = value;
             OnEnemiesKilledChanged?.Invoke(_enemiesKilled);
         }
     }
-    public float spawnInterval = 3.0f;
-    public float enemySpeed = 1.0f;
-    public float enemySpawnDistance = 10.0f;
-    public float distanceBetweenEnemies = 0.5f;
+    public float SpawnInterval => spawnInterval;
+    public float EnemySpeed => enemySpeed;
+    public float EnemySpawnDistance => enemySpawnDistance;
+    public float DistanceBetweenEnemies => distanceBetweenEnemies;
+    public float BasicEnemyAttackRange => basicEnemyAttackRange;
+    public float MediumEnemyTeleportDistance => mediumEnemyTeleportDistance;
+    public float DistanceAfterPlayerHit => distanceAfterPlayerHit;
 
-    //BasicEnemy
-    public float basicEnemyAttackRange = 2.0f;
-    public int maxHits = 2;
-    public float timeToDestroyEnemy = 0.1f;
-    public float mediumEnemyTPDistance = 4.0f;
-    public float distanceAfterHitPlayer = 8.0f;
+    public event Action<int> OnScoreChanged;
+    public event Action<int> OnEnemiesKilledChanged;
+    public event Action<int> OnPlayerLivesChanged;
+    public event Action<float> OnTimeScaleChanged;
+    public event Action OnGameOver;
 
     private void OnEnable()
     {
-        gameState = GameState.PLAYING;
-
-        //recover from a file if exist, else reset to default values
-        level = 1;
-        playerLives = 3;
-        playerScore = 0;
-        spawnInterval = 3.0f;
-        enemySpeed = 1.0f;
-        enemiesKilled = 0;
-
-        OnPlayerLivesChanged += CheckEnd;
-    }
-
-    private void OnDisable()
-    {
-        OnPlayerLivesChanged -= CheckEnd;
-    }
-
-    private void CheckEnd(int lives)
-    {
-        if (lives <= 0)
-        {
-            ChangeState(GameState.GAME_OVER);
-        }
+        ResetRuntimeState();
     }
 
     public void ResetGame()
     {
-        gameState = GameState.PLAYING;
-
-        playerLives = 3;
-        playerScore = 0;
-        spawnInterval = 3.0f;
-        enemySpeed = 1.0f;
-        enemiesKilled = 0;
-
+        ResetSession();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+    }
+
+    public void ResetSession()
+    {
+        ResetRuntimeState();
+        Time.timeScale = 1f;
+    }
+
+    private void ResetRuntimeState()
+    {
+        CurrentState = GameState.Playing;
+        playerLives = DefaultPlayerLives;
+        PlayerScore = 0;
+        spawnInterval = DefaultSpawnInterval;
+        enemySpeed = DefaultEnemySpeed;
+        EnemiesKilled = 0;
     }
 
     public void IncreaseScore(int amount)
     {
-        playerScore += amount;
+        PlayerScore = Mathf.Max(0, PlayerScore + amount);
     }
-
-    public void SetEnemySpeed(float speed)
-    {
-        enemySpeed = speed;
-    }
-
-    public event Action<int> OnPlayerLivesChanged;
 
     public void DecreaseLife()
     {
+        if (playerLives == 0)
+        {
+            return;
+        }
+
         playerLives--;
         OnPlayerLivesChanged?.Invoke(playerLives);
+
+        if (playerLives == 0)
+        {
+            ChangeState(GameState.GameOver);
+        }
     }
 
-    public void IncreaseEnemiesKilled()
+    public void RegisterEnemyKilled()
     {
-        enemiesKilled++;
+        EnemiesKilled++;
     }
 
-    public void DecreaseSpawnInterval()
+    public void DecreaseSpawnInterval(float amount = 0.75f)
     {
-        spawnInterval -= 0.75f;
+        spawnInterval = Mathf.Max(MinimumSpawnInterval, spawnInterval - Mathf.Max(0f, amount));
     }
-
-    public event Action<float> OnTimeScaleChanged;
 
     public void ExponentialPause(float duration = 1f)
     {
-        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.ExponentialPauseCoroutine(duration, OnTimeScaleChanged));
+        if (GameManagerMono.Instance != null)
+        {
+            GameManagerMono.Instance.Pause(duration, OnTimeScaleChanged);
+        }
     }
 
     public void ExponentialResume(float duration = 1f)
     {
-        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.ExponentialResumeCoroutine(duration, OnTimeScaleChanged));
+        if (GameManagerMono.Instance != null)
+        {
+            GameManagerMono.Instance.Resume(duration, OnTimeScaleChanged);
+        }
     }
 
     public void HitTimeEffect(float slowFactor = 0.2f, float duration = 0.5f)
     {
-        GameManagerMono.Instance.StartCoroutine(GameManagerMono.Instance.HitTimeCoroutine(slowFactor, duration, OnTimeScaleChanged));
+        if (GameManagerMono.Instance != null)
+        {
+            GameManagerMono.Instance.HitStop(slowFactor, duration, OnTimeScaleChanged);
+        }
     }
-
-
-    public event Action OnGameOver;
 
     public void ChangeState(GameState newState)
     {
-        gameState = newState;
+        CurrentState = newState;
 
-        if (gameState == GameState.GAME_OVER)
+        if (CurrentState == GameState.GameOver)
         {
             OnGameOver?.Invoke();
         }
@@ -158,9 +171,9 @@ public class GameManagerSO : ScriptableObject
 
     public enum GameState
     {
-        INIT,
-        PLAYING,
-        PAUSE,
-        GAME_OVER
+        Init,
+        Playing,
+        Paused,
+        GameOver
     }
 }

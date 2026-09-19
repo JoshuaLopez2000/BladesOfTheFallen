@@ -1,25 +1,29 @@
+using System;
 using System.IO;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
-[System.Serializable]
-public class HighScoreData
+[Serializable]
+internal sealed class HighScoreData
 {
     public int highScore;
 }
 
 public class HighScoreManager : MonoBehaviour
 {
-    public GameManagerSO gameManager;
-    public TMP_Text highScoreText;
+    private const string FileName = "highscore.json";
 
-    private int highScore = 0;
-    private int currentScore = 0;
+    [SerializeField] private GameManagerSO gameManager;
+    [SerializeField] private TMP_Text highScoreText;
+
+    private int highScore;
+    private int currentScore;
     private string filePath;
 
     private void Awake()
     {
-        filePath = Path.Combine(Application.persistentDataPath, "highscore.json");
+        filePath = Path.Combine(Application.persistentDataPath, FileName);
+        currentScore = gameManager.PlayerScore;
         LoadHighScore();
         UpdateHighScoreUI();
     }
@@ -28,7 +32,6 @@ public class HighScoreManager : MonoBehaviour
     {
         gameManager.OnGameOver += HandleGameOver;
         gameManager.OnScoreChanged += UpdateCurrentScore;
-
     }
 
     private void OnDisable()
@@ -36,6 +39,7 @@ public class HighScoreManager : MonoBehaviour
         gameManager.OnGameOver -= HandleGameOver;
         gameManager.OnScoreChanged -= UpdateCurrentScore;
     }
+
     private void UpdateCurrentScore(int score)
     {
         currentScore = score;
@@ -46,40 +50,58 @@ public class HighScoreManager : MonoBehaviour
         CheckHighScore();
     }
 
-    public void CheckHighScore()
+    private void CheckHighScore()
     {
-        Debug.Log("Current Score:" + currentScore);
-        if (currentScore > highScore)
+        if (currentScore <= highScore)
         {
-            highScore = currentScore;
-            SaveHighScore();
-            UpdateHighScoreUI();
+            return;
         }
+
+        highScore = currentScore;
+        SaveHighScore();
+        UpdateHighScoreUI();
     }
 
     private void UpdateHighScoreUI()
     {
-        highScoreText.text = "Record: " + highScore.ToString();
+        if (highScoreText != null)
+        {
+            highScoreText.SetText("Record: {0}", highScore);
+        }
     }
 
     private void SaveHighScore()
     {
-        HighScoreData data = new HighScoreData { highScore = highScore };
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(filePath, json);
+        try
+        {
+            HighScoreData data = new() { highScore = highScore };
+            string json = JsonUtility.ToJson(data, true);
+            File.WriteAllText(filePath, json);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Could not save the high score: {exception.Message}", this);
+        }
     }
 
     private void LoadHighScore()
     {
-        if (File.Exists(filePath))
+        if (!File.Exists(filePath))
+        {
+            highScore = 0;
+            return;
+        }
+
+        try
         {
             string json = File.ReadAllText(filePath);
             HighScoreData data = JsonUtility.FromJson<HighScoreData>(json);
-            highScore = data.highScore;
+            highScore = Mathf.Max(0, data?.highScore ?? 0);
         }
-        else
+        catch (Exception exception)
         {
             highScore = 0;
+            Debug.LogWarning($"Could not load the high score: {exception.Message}", this);
         }
     }
 }

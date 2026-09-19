@@ -1,124 +1,175 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
+[DisallowMultipleComponent]
 public class PlayerController : MonoBehaviour
 {
-    public GameManagerSO gameManager;
-    public InputReaderSO inputReader;
+    private const float AttackRecoveryDuration = 0.8f;
+    private const float ComboTimeout = 1f;
+    private const float ParryCooldown = 3f;
+    private const int ComboDisplayThreshold = 10;
 
-    public static PlayerController instance;
-    public AudioSource audioSource;
-    public List<AudioClip> slashs;
-    public AudioClip missSound, parrySound;
-    public Animator animator;
-    public Material inkWaveMaterial;
-    private float attackRange = 2f, maxApproachDistance = 2.0f;
-    public Renderer playerInkWaveRenderer, katanaInkWaveRenderer;
-    private float lastAttackTime = 0f;
-    private List<int> attackIdsAux = new List<int> { 0, 1, 2 }, attackIds = new List<int>();
-    private int attackId = 0;
-    private bool playerCanHit = true, resetting = false;
+    private static readonly int AttackIdParameter = Animator.StringToHash("idAttack");
+    private static readonly int AttackTrigger = Animator.StringToHash("Attack");
+    private static readonly int ParryTrigger = Animator.StringToHash("Parry");
+    private static readonly int GetHitTrigger = Animator.StringToHash("GetHit");
+    private static readonly int HitEnemyParameter = Animator.StringToHash("HitEnemy");
+    private static readonly int StyleSwitchProperty = Shader.PropertyToID("_Switch");
 
-    private float parryCooldown = 3f;
-    private float lastParryTime = 0f;
+    [Header("Dependencies")]
+    [SerializeField] private GameManagerSO gameManager;
+    [SerializeField] private InputReaderSO inputReader;
+    [SerializeField] private Animator animator;
+    [SerializeField] private AudioSource audioSource;
 
-    public GameObject floatingTextPrefab;
+    [Header("Audio")]
+    [FormerlySerializedAs("slashs")]
+    [SerializeField] private List<AudioClip> slashClips = new();
+    [SerializeField] private AudioClip parrySound;
 
-    private int combo = 0;
+    [Header("Visuals")]
+    [SerializeField] private Renderer playerInkWaveRenderer;
+    [SerializeField] private Renderer katanaInkWaveRenderer;
+    [SerializeField] private GameObject floatingTextPrefab;
+    [SerializeField] private bool showDebugRays;
+
+    private readonly List<int> attackIds = new() { 0, 1, 2 };
+    private MaterialPropertyBlock propertyBlock;
+
+    private float attackRange = 2f;
+    private float maxApproachDistance = 2f;
+    private float lastAttackTime;
+    private float lastParryTime = -ParryCooldown;
+    private int attackId;
+    private int combo;
+    private bool playerCanHit = true;
+    private bool resetting;
+    private bool? appliedSpecialAbilityState;
 
     private void Awake()
     {
-        instance = this;
+        propertyBlock = new MaterialPropertyBlock();
+
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
     }
 
     private void OnEnable()
     {
-        if (inputReader != null)
+        if (inputReader == null)
         {
-            inputReader.OnSlashRight += HandleSlashRight;
-            inputReader.OnSlashLeft += HandleSlashLeft;
-            inputReader.OnParry += HandleParry;
+            return;
         }
+
+        inputReader.OnSlashRight += HandleSlashRight;
+        inputReader.OnSlashLeft += HandleSlashLeft;
+        inputReader.OnParry += HandleParry;
     }
 
     private void OnDisable()
     {
-        if (inputReader != null)
+        if (inputReader == null)
         {
-            inputReader.OnSlashRight -= HandleSlashRight;
-            inputReader.OnSlashLeft -= HandleSlashLeft;
-            inputReader.OnParry -= HandleParry;
+            return;
         }
+
+        inputReader.OnSlashRight -= HandleSlashRight;
+        inputReader.OnSlashLeft -= HandleSlashLeft;
+        inputReader.OnParry -= HandleParry;
     }
 
-    void Start()
+    private void Start()
     {
-        animator = GetComponent<Animator>();
-        attackIds = new List<int>(attackIdsAux);
-        playerCanHit = true;
-
+        attackIds.Shuffle();
         attackRange = gameManager.PlayerAttackRange;
         maxApproachDistance = gameManager.PlayerMaxApproachDistance;
+        ApplySpecialAbilityVisual(gameManager.HasSpecialAbility);
     }
 
-    void Update()
+    private void Update()
     {
-        // Debug raycast to check player position
-        Debug.DrawRay(transform.position + Vector3.up * 0.2f, transform.forward * attackRange, Color.red);
-        Debug.DrawRay(transform.position + Vector3.up * 0.2f, -transform.forward * attackRange, Color.blue);
+#if UNITY_EDITOR
+        if (showDebugRays)
+        {
+            Vector3 origin = transform.position + Vector3.up * 0.2f;
+            Debug.DrawRay(origin, transform.forward * attackRange, Color.red);
+            Debug.DrawRay(origin, -transform.forward * attackRange, Color.blue);
+        }
+#endif
+
         if (!playerCanHit && !resetting)
         {
-            StartCoroutine(WaitAndReset(0.8f));
+            StartCoroutine(WaitAndReset());
         }
 
-        if (gameManager.hasEspecialHability)
-        {
-            var block = new MaterialPropertyBlock();
-            block.SetFloat("_Switch", 1);
-            playerInkWaveRenderer.SetPropertyBlock(block);
-            katanaInkWaveRenderer.SetPropertyBlock(block);
-        }
-        else
-        {
-            var block = new MaterialPropertyBlock();
-            block.SetFloat("_Switch", 0);
-            playerInkWaveRenderer.SetPropertyBlock(block);
-            katanaInkWaveRenderer.SetPropertyBlock(block);
-        }
+        ApplySpecialAbilityVisual(gameManager.HasSpecialAbility);
 
-        if (Time.time - lastAttackTime > 1.0f)
+        if (combo > 0 && Time.time - lastAttackTime > ComboTimeout)
         {
             combo = 0;
         }
     }
 
-    public void SpawnCombo()
+    public void InputRight()
     {
-        if (combo < 10)
+        if (inputReader != null)
         {
-            return;
+            inputReader.RaiseSlashRight();
         }
-        GameObject instance = Instantiate(floatingTextPrefab, transform.position + Vector3.up * 6, Quaternion.identity);
-        instance.GetComponent<FloatingText>().Initialize($"Combo x{combo}", Color.white);
+        else
+        {
+            HandleSlashRight();
+        }
+    }
+
+    public void InputLeft()
+    {
+        if (inputReader != null)
+        {
+            inputReader.RaiseSlashLeft();
+        }
+        else
+        {
+            HandleSlashLeft();
+        }
+    }
+
+    public void InputUp()
+    {
+        if (inputReader != null)
+        {
+            inputReader.RaiseParry();
+        }
+        else
+        {
+            HandleParry();
+        }
     }
 
     private void HandleSlashRight()
     {
-        if (playerCanHit)
+        if (!playerCanHit)
         {
-            transform.rotation = Quaternion.Euler(0, 90, 0);
-            PerformSlash();
+            return;
         }
+
+        transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+        PerformSlash();
     }
 
     private void HandleSlashLeft()
     {
-        if (playerCanHit)
+        if (!playerCanHit)
         {
-            transform.rotation = Quaternion.Euler(0, 270, 0);
-            PerformSlash();
+            return;
         }
+
+        transform.rotation = Quaternion.Euler(0f, 270f, 0f);
+        PerformSlash();
     }
 
     private void HandleParry()
@@ -129,184 +180,190 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void inputRight()
+    private void PerformSlash()
     {
-        if (inputReader != null) inputReader.RaiseSlashRight();
-        else HandleSlashRight();
-    }
-
-    public void inputLeft()
-    {
-        if (inputReader != null) inputReader.RaiseSlashLeft();
-        else HandleSlashLeft();
-    }
-
-    public void inputUp()
-    {
-        if (inputReader != null) inputReader.RaiseParry();
-        else HandleParry();
-    }
-
-    private void getAttackId()
-    {
-        if (Time.time - lastAttackTime > 2f)
+        bool hitEnemy = TryHitEnemy(transform.forward, attackRange, out RaycastHit hit);
+        if (hitEnemy)
         {
-            attackIds = new List<int>(attackIdsAux);
-            attackIds.Shuffle();
-        }
-
-        int newAttackId = attackIds[0];
-        attackIds.RemoveAt(0);
-        lastAttackTime = Time.time;
-        Debug.Log("Attack ID: " + newAttackId);
-
-        if (attackIds.Count == 0)
-        {
-            attackIds = new List<int>(attackIdsAux);
-            attackIds.Shuffle();
-        }
-        attackId = newAttackId;
-        audioSource.PlayOneShot(slashs[Random.Range(0, slashs.Count)]);
-    }
-
-    private void KeepCombo()
-    {
-        combo++;
-        SpawnCombo();
-    }
-
-    void PerformParry()
-    {
-        if (Time.time - lastParryTime > parryCooldown)
-        {
-            lastParryTime = Time.time;
-        }
-        else
-        {
-            return;
-        }
-        RaycastHit hitForward, hitBackward;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out hitForward, attackRange / 2))
-        {
-            if (hitForward.collider.CompareTag("Enemy"))
-            {
-                EnemyBase enemy = hitForward.collider.GetComponent<EnemyBase>();
-                if (enemy != null)
-                {
-                    enemy.Hit();
-                    animator.SetBool("HitEnemy", true);
-                }
-                else
-                {
-                    Debug.Log("Raycast hit, but not an enemy");
-                }
-
-                Debug.Log("Enemy hit on raycast: " + hitForward.collider.name);
-
-                playerCanHit = true;
-            }
-        }
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, -transform.forward, out hitBackward, attackRange / 2))
-        {
-            if (hitBackward.collider.CompareTag("Enemy"))
-            {
-                EnemyBase enemy = hitBackward.collider.GetComponent<EnemyBase>();
-                if (enemy != null)
-                {
-                    enemy.Hit();
-                    animator.SetBool("HitEnemy", true);
-                }
-                else
-                {
-                    Debug.Log("Raycast hit, but not an enemy");
-                }
-
-                Debug.Log("Enemy hit on raycast: " + hitBackward.collider.name);
-
-                playerCanHit = true;
-            }
-        }
-
-        animator.SetTrigger("Parry");
-        audioSource.PlayOneShot(parrySound);
-        if (!playerCanHit)
-        {
-            combo = 0;
-            animator.SetBool("HitEnemy", false);
-        }
-        else
-        {
-            KeepCombo();
-        }
-    }
-    void PerformSlash()
-    {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out hit, attackRange))
-        {
-            if (hit.collider.CompareTag("Enemy"))
-            {
-                EnemyBase enemy = hit.collider.GetComponent<EnemyBase>();
-                if (enemy != null)
-                {
-                    enemy.Hit();
-                    animator.SetBool("HitEnemy", true);
-                }
-                else
-                {
-                    Debug.Log("Raycast hit, but not an enemy");
-                }
-
-                Debug.Log("Enemy hit on raycast: " + hit.collider.name);
-                float distanceX = Mathf.Abs(transform.position.x - hit.collider.transform.position.x);
-                Debug.Log("Distance X: " + distanceX + ", Max Approach Distance: " + maxApproachDistance);
-
-                if (distanceX > maxApproachDistance)
-                {
-                    Debug.Log("Approaching enemy");
-                    Vector3 targetPosition = new Vector3(hit.collider.transform.position.x, transform.position.y, transform.position.z);
-                    transform.position = Vector3.MoveTowards(transform.position, targetPosition, distanceX - maxApproachDistance);
-                }
-                playerCanHit = true;
-            }
+            ApproachEnemy(hit.collider.transform);
         }
         else
         {
             playerCanHit = false;
-            Debug.Log("No enemy hit, moving forward");
             float directionX = Mathf.Sign(transform.forward.x);
-            Vector3 targetPosition = new Vector3(transform.position.x + directionX * attackRange, transform.position.y, transform.position.z);
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, attackRange - maxApproachDistance);
+            Vector3 targetPosition = transform.position + Vector3.right * (directionX * attackRange);
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                targetPosition,
+                Mathf.Max(0f, attackRange - maxApproachDistance));
         }
-        getAttackId();
-        animator.SetFloat("idAttack", attackId);
-        animator.SetTrigger("Attack");
-        if (!playerCanHit)
+
+        SelectNextAttack();
+        animator.SetFloat(AttackIdParameter, attackId);
+        animator.SetTrigger(AttackTrigger);
+        CompleteAttack(hitEnemy);
+    }
+
+    private void PerformParry()
+    {
+        if (Time.time - lastParryTime < ParryCooldown)
         {
-            combo = 0;
-            animator.SetBool("HitEnemy", false);
+            return;
         }
-        else
+
+        lastParryTime = Time.time;
+        float parryRange = attackRange * 0.5f;
+        bool hitEnemy = TryHitEnemy(transform.forward, parryRange, out _);
+        hitEnemy |= TryHitEnemy(-transform.forward, parryRange, out _);
+
+        animator.SetTrigger(ParryTrigger);
+        if (audioSource != null && parrySound != null)
         {
-            KeepCombo();
+            audioSource.PlayOneShot(parrySound);
         }
+
+        CompleteAttack(hitEnemy);
+    }
+
+    private bool TryHitEnemy(Vector3 direction, float range, out RaycastHit hit)
+    {
+        Vector3 origin = transform.position + Vector3.up * 0.2f;
+        if (!Physics.Raycast(origin, direction, out hit, range) || !hit.collider.CompareTag("Enemy"))
+        {
+            return false;
+        }
+
+        if (!hit.collider.TryGetComponent(out EnemyBase enemy))
+        {
+            return false;
+        }
+
+        enemy.Hit();
+        animator.SetBool(HitEnemyParameter, true);
+        return true;
+    }
+
+    private void ApproachEnemy(Transform enemyTransform)
+    {
+        float distanceX = Mathf.Abs(transform.position.x - enemyTransform.position.x);
+        if (distanceX <= maxApproachDistance)
+        {
+            return;
+        }
+
+        Vector3 targetPosition = new(enemyTransform.position.x, transform.position.y, transform.position.z);
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetPosition,
+            distanceX - maxApproachDistance);
+    }
+
+    private void CompleteAttack(bool hitEnemy)
+    {
+        if (hitEnemy)
+        {
+            playerCanHit = true;
+            combo++;
+            gameManager.HitTimeEffect(0.2f, 0.15f);
+            SpawnComboText();
+            return;
+        }
+
+        combo = 0;
+        animator.SetBool(HitEnemyParameter, false);
+    }
+
+    private void SelectNextAttack()
+    {
+        if (Time.time - lastAttackTime > 2f)
+        {
+            ResetAttackIds();
+        }
+
+        attackId = attackIds[0];
+        attackIds.RemoveAt(0);
+        lastAttackTime = Time.time;
+
+        if (attackIds.Count == 0)
+        {
+            ResetAttackIds();
+        }
+
+        if (audioSource != null && slashClips.Count > 0)
+        {
+            AudioClip clip = slashClips[Random.Range(0, slashClips.Count)];
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
+            }
+        }
+    }
+
+    private void ResetAttackIds()
+    {
+        attackIds.Clear();
+        attackIds.Add(0);
+        attackIds.Add(1);
+        attackIds.Add(2);
+        attackIds.Shuffle();
+    }
+
+    private void SpawnComboText()
+    {
+        if (combo < ComboDisplayThreshold || floatingTextPrefab == null)
+        {
+            return;
+        }
+
+        GameObject textObject = Instantiate(floatingTextPrefab, transform.position + Vector3.up * 6f, Quaternion.identity);
+        if (textObject.TryGetComponent(out FloatingText floatingText))
+        {
+            floatingText.Initialize($"Combo x{combo}", Color.white);
+        }
+    }
+
+    private void ApplySpecialAbilityVisual(bool enabled)
+    {
+        if (appliedSpecialAbilityState == enabled)
+        {
+            return;
+        }
+
+        ApplyStyleSwitch(playerInkWaveRenderer, enabled ? 1f : 0f);
+        ApplyStyleSwitch(katanaInkWaveRenderer, enabled ? 1f : 0f);
+        appliedSpecialAbilityState = enabled;
+    }
+
+    private void ApplyStyleSwitch(Renderer targetRenderer, float value)
+    {
+        if (targetRenderer == null)
+        {
+            return;
+        }
+
+        targetRenderer.GetPropertyBlock(propertyBlock);
+        propertyBlock.SetFloat(StyleSwitchProperty, value);
+        targetRenderer.SetPropertyBlock(propertyBlock);
+        propertyBlock.Clear();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("EnemyAttack"))
+        if (!other.CompareTag("EnemyAttack"))
         {
-            Debug.Log("Player hit by enemy attack");
-            animator.SetTrigger("GetHit");
-            playerCanHit = false;
-            gameManager.DecreaseLife();
+            return;
         }
+
+        animator.SetTrigger(GetHitTrigger);
+        playerCanHit = false;
+        combo = 0;
+        gameManager.DecreaseLife();
     }
 
-    private IEnumerator WaitAndReset(float waitTime)
+    private IEnumerator WaitAndReset()
     {
         resetting = true;
-        yield return new WaitForSeconds(waitTime);
+        yield return new WaitForSeconds(AttackRecoveryDuration);
         playerCanHit = true;
         resetting = false;
     }

@@ -2,19 +2,22 @@ using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class VolumeManager : MonoBehaviour
 {
-    private string fileName = "audioSettings.json";
-    public Slider mainVolume;
-    public Slider musicVolume;
-    public Slider SFxVolume;
-    public AudioMixer globalAudioMixer;
+    private const string FileName = "audioSettings.json";
 
-    private AudioVolumes tmpVolumes;
+    [SerializeField] private Slider mainVolume;
+    [SerializeField] private Slider musicVolume;
+    [FormerlySerializedAs("SFxVolume")]
+    [SerializeField] private Slider sfxVolume;
+    [SerializeField] private AudioMixer globalAudioMixer;
 
-    void Start()
+    private AudioVolumes volumes = new();
+
+    private void Start()
     {
         LoadVolumes();
     }
@@ -23,33 +26,34 @@ public class VolumeManager : MonoBehaviour
     {
         mainVolume.onValueChanged.AddListener(OnMainVolumeChange);
         musicVolume.onValueChanged.AddListener(OnMusicVolumeChange);
-        SFxVolume.onValueChanged.AddListener(OnSFxVolumeChange);
+        sfxVolume.onValueChanged.AddListener(OnSfxVolumeChange);
     }
 
     private void OnDisable()
     {
         mainVolume.onValueChanged.RemoveListener(OnMainVolumeChange);
         musicVolume.onValueChanged.RemoveListener(OnMusicVolumeChange);
-        SFxVolume.onValueChanged.RemoveListener(OnSFxVolumeChange);
+        sfxVolume.onValueChanged.RemoveListener(OnSfxVolumeChange);
     }
 
-    public void OnMainVolumeChange(float volume)
+    private void OnMainVolumeChange(float volume)
     {
         SetMixerVolume("MasterVolume", volume);
-        tmpVolumes.main = volume;
-    }
-
-    public void OnMusicVolumeChange(float volume)
-    {
-        SetMixerVolume("MusicVolume", volume);
-        tmpVolumes.music = volume;
+        volumes.main = volume;
         SaveVolumes();
     }
 
-    public void OnSFxVolumeChange(float volume)
+    private void OnMusicVolumeChange(float volume)
+    {
+        SetMixerVolume("MusicVolume", volume);
+        volumes.music = volume;
+        SaveVolumes();
+    }
+
+    private void OnSfxVolumeChange(float volume)
     {
         SetMixerVolume("SFxVolume", volume);
-        tmpVolumes.SFx = volume;
+        volumes.SFx = volume;
         SaveVolumes();
     }
 
@@ -62,38 +66,50 @@ public class VolumeManager : MonoBehaviour
 
     private void SaveVolumes()
     {
-        string fullPath = Path.Combine(Application.persistentDataPath, fileName);
-        string tmpJson = JsonUtility.ToJson(tmpVolumes);
-        File.WriteAllText(fullPath, tmpJson);
+        string fullPath = Path.Combine(Application.persistentDataPath, FileName);
+
+        try
+        {
+            string json = JsonUtility.ToJson(volumes);
+            File.WriteAllText(fullPath, json);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Could not save audio settings: {exception.Message}", this);
+        }
     }
 
     private void LoadVolumes()
     {
-        string fullPath = Path.Combine(Application.persistentDataPath, fileName);
+        string fullPath = Path.Combine(Application.persistentDataPath, FileName);
 
         if (File.Exists(fullPath))
         {
-            string volumeContent = File.ReadAllText(fullPath);
-            tmpVolumes = JsonUtility.FromJson<AudioVolumes>(volumeContent);
+            try
+            {
+                string volumeContent = File.ReadAllText(fullPath);
+                volumes = JsonUtility.FromJson<AudioVolumes>(volumeContent) ?? new AudioVolumes();
+            }
+            catch (Exception exception)
+            {
+                volumes = new AudioVolumes();
+                Debug.LogWarning($"Could not load audio settings: {exception.Message}", this);
+            }
         }
-        else
-        {
-            tmpVolumes = new AudioVolumes();
-        }
 
-        mainVolume.value = tmpVolumes.main;
-        SetMixerVolume("MasterVolume", tmpVolumes.main);
+        mainVolume.SetValueWithoutNotify(volumes.main);
+        SetMixerVolume("MasterVolume", volumes.main);
 
-        musicVolume.value = tmpVolumes.music;
-        SetMixerVolume("MusicVolume", tmpVolumes.music);
+        musicVolume.SetValueWithoutNotify(volumes.music);
+        SetMixerVolume("MusicVolume", volumes.music);
 
-        SFxVolume.value = tmpVolumes.SFx;
-        SetMixerVolume("SFxVolume", tmpVolumes.SFx);
+        sfxVolume.SetValueWithoutNotify(volumes.SFx);
+        SetMixerVolume("SFxVolume", volumes.SFx);
     }
 }
 
 [Serializable]
-public class AudioVolumes
+internal sealed class AudioVolumes
 {
     public float main, music, SFx;
 

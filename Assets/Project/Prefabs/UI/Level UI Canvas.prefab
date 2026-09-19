@@ -839,7 +839,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 420125293917208171}
-        m_TargetAssemblyTypeName: PauseFade, Assembly-CSharp
+        m_TargetAssemblyTypeName: PauseFade, BladesOfTheFallen.Runtime
         m_MethodName: TogglePause
         m_Mode: 1
         m_Arguments:
@@ -1565,7 +1565,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 420125293917208171}
-        m_TargetAssemblyTypeName: PauseFade, Assembly-CSharp
+        m_TargetAssemblyTypeName: PauseFade, BladesOfTheFallen.Runtime
         m_MethodName: TogglePause
         m_Mode: 1
         m_Arguments:

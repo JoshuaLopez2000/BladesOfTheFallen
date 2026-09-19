@@ -1,97 +1,57 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class MediumEnemyController : EnemyBase
 {
-    public Animator mediumEnemyAnimator;
-
-    private float lastAttackTime;
-    private float attackCooldown;
+    [SerializeField] private Animator mediumEnemyAnimator;
 
     public override void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
-        // Set visual style first (Switch 1 for Medium) to match original execution order
-        enemyRenderer.GetPropertyBlock(propBlock);
-        propBlock.SetFloat("_Switch", 1);
-        enemyRenderer.SetPropertyBlock(propBlock);
-
+        SetVisualStyle(1f);
         base.Initialize(playerTransform, newSpeed, newLives, initialColor);
     }
 
-    public override void Start()
+    protected override void Start()
     {
-        if (isInitialized)
+        if (!isInitialized)
         {
-            attackCooldown = 3.0f;
-            lastAttackTime = 0.0f;
-            return;
+            base.Start();
+            speed = speed > 0f ? speed : GameManager.EnemySpeed;
+            enemyLives = enemyLives > 0 ? enemyLives : 3;
         }
 
-        base.Start();
-        attackCooldown = 3.0f;
-        lastAttackTime = 0.0f;
-        
-        if (speed == 0) speed = gameManager.enemySpeed;
-        if (enemyLives == 0) enemyLives = 3;
-
-        enemyRenderer.GetPropertyBlock(propBlock);
-        propBlock.SetFloat("_Switch", 1);
-        enemyRenderer.SetPropertyBlock(propBlock);
+        SetVisualStyle(1f);
     }
 
-    void Update()
+    private void Update()
     {
-        if ((Vector3.Distance(transform.position, player.transform.position) < attackRange) && !getHit && Time.time - lastAttackTime > attackCooldown)
-        {
-            mediumEnemyAnimator.SetTrigger("Attack");
-            lastAttackTime = Time.time;
-        }
-        if (player != null && !getHit)
-        {
-            Vector3 direction = (player.transform.position - transform.position).normalized;
-            transform.Translate(direction * speed * Time.deltaTime, Space.World);
-        }
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + (Vector3.up * 0.2f), transform.forward, out hit, distanceBetweenEnemies))
-        {
-            if (hit.collider.CompareTag("Enemy") && hit.collider != this.GetComponent<Collider>())
-            {
-                transform.Translate(-Vector3.forward * speed * Time.deltaTime);
-            }
-        }
-
-        if (getHit && !resetting)
-        {
-            StartCoroutine(WaitAndReset(0.5f));
-        }
+        UpdateEnemy(mediumEnemyAnimator);
     }
 
     public override void Hit()
     {
-        Vector3 teleportPosition = player.transform.position - player.transform.forward * gameManager.mediumEnemyTPDistance;
-        teleportPosition.y = transform.position.y;
-        StartCoroutine(WaitAndTeleport(0.1f, teleportPosition));
+        if (getHit)
+        {
+            return;
+        }
 
         getHit = true;
-        Debug.Log("Medium enemy get hit");
-
         enemyLives--;
-        if (enemyLives == 2)
+        if (enemyLives > 0)
         {
-            gameManager.IncreaseScore(gameManager.scorePerHit);
+            GameManager.IncreaseScore(GameManager.ScorePerHit);
             mediumEnemyAnimator.SetTrigger("GetHit");
-            SetColor(yellowColor);
-        }
-        else if (enemyLives == 1)
-        {
-            SetColor(redColor);
+            SetColor(enemyLives == 1 ? redColor : yellowColor);
+
+            Vector3 teleportPosition = player.transform.position - player.transform.forward * GameManager.MediumEnemyTeleportDistance;
+            teleportPosition.y = transform.position.y;
+            StartCoroutine(WaitAndTeleport(0.1f, teleportPosition));
         }
         else
         {
-            gameManager.IncreaseScore(gameManager.scorePerEnemy);
+            GameManager.IncreaseScore(GameManager.ScorePerEnemy);
             mediumEnemyAnimator.SetBool("IsDead", true);
-            Die(0.0f);
+            Die(0f);
         }
     }
 
@@ -99,7 +59,6 @@ public class MediumEnemyController : EnemyBase
     {
         yield return new WaitForSeconds(waitTime);
         transform.position = position;
-        transform.LookAt(player.transform.position);
+        FacePlayer();
     }
-
 }

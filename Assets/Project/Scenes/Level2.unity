@@ -203,8 +203,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1319743689}
-        m_TargetAssemblyTypeName: GameManagerMono, Assembly-CSharp
-        m_MethodName: Reset
+        m_TargetAssemblyTypeName: GameManagerMono, BladesOfTheFallen.Runtime
+        m_MethodName: ResetGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -577,8 +577,6 @@ MonoBehaviour:
   gameManager: {fileID: 11400000, guid: 0b506fbe201052e4c9317205011c24b5, type: 2}
   basicEnemyPrefab: {fileID: 2137659063261253761, guid: a8fcdb27cd353f347b4edc0bbec890b7, type: 3}
   mediumEnemyPrefab: {fileID: 2137659063261253761, guid: 4cdaf969a0617ed47b448f438bf4094a, type: 3}
-  hardEnemyPrefab: {fileID: 0}
-  distanceFromPlayer: 10
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -2258,7 +2256,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1319743689}
-        m_TargetAssemblyTypeName: GameManagerMono, Assembly-CSharp
+        m_TargetAssemblyTypeName: GameManagerMono, BladesOfTheFallen.Runtime
         m_MethodName: GoToMainMenu
         m_Mode: 1
         m_Arguments:
@@ -2645,8 +2643,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1566109968}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: inputRight
+        m_TargetAssemblyTypeName: PlayerController, BladesOfTheFallen.Runtime
+        m_MethodName: InputRight
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2757,8 +2755,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1566109968}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: inputUp
+        m_TargetAssemblyTypeName: PlayerController, BladesOfTheFallen.Runtime
+        m_MethodName: InputUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3233,8 +3231,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1566109968}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: inputLeft
+        m_TargetAssemblyTypeName: PlayerController, BladesOfTheFallen.Runtime
+        m_MethodName: InputLeft
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -2,31 +2,42 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameManagerSO gameManager;
-    public GameObject basicEnemyPrefab, mediumEnemyPrefab, hardEnemyPrefab;
-    public float distanceFromPlayer;
+    private const int FirstDifficultyThreshold = 5;
+    private const int SecondDifficultyThreshold = 10;
+    private const float SkipSpawnChance = 0.3f;
+
+    [SerializeField] private GameManagerSO gameManager;
+    [SerializeField] private GameObject basicEnemyPrefab;
+    [SerializeField] private GameObject mediumEnemyPrefab;
+
     private GameObject player;
-    private float nextSpawnTime = 0f;
+    private float nextSpawnTime;
 
-    void Start()
+    private void Start()
     {
-        distanceFromPlayer = gameManager.enemySpawnDistance;
-
         player = GameObject.FindWithTag("Player");
-        nextSpawnTime = Time.time + gameManager.spawnInterval;
+        nextSpawnTime = Time.time + gameManager.SpawnInterval;
+
+        if (player == null)
+        {
+            Debug.LogError("EnemySpawner requires a GameObject tagged 'Player'.", this);
+            enabled = false;
+        }
     }
 
-    void Update()
+    private void Update()
     {
-        if (player == null) return;
+        if (gameManager.CurrentState != GameManagerSO.GameState.Playing)
+        {
+            return;
+        }
 
         if (Time.time >= nextSpawnTime)
         {
             SpawnEnemies();
-            nextSpawnTime = Time.time + gameManager.spawnInterval;
+            nextSpawnTime = Time.time + gameManager.SpawnInterval;
         }
     }
-
 
     private void OnEnable()
     {
@@ -40,85 +51,86 @@ public class EnemySpawner : MonoBehaviour
 
     private void UpdateSpawnInterval(int totalKilled)
     {
-        if (totalKilled == 10)
+        if (totalKilled is 10 or 20 or 35)
+        {
             gameManager.DecreaseSpawnInterval();
-        else if (totalKilled == 20)
-            gameManager.DecreaseSpawnInterval();
-        else if (totalKilled == 35)
-            gameManager.DecreaseSpawnInterval();
+        }
     }
 
     private void SpawnEnemies()
     {
-        Vector3 rightPos = new Vector3(player.transform.position.x + distanceFromPlayer,
-                                       transform.position.y,
-                                       transform.position.z);
+        if (Random.value < SkipSpawnChance)
+        {
+            return;
+        }
 
-        Vector3 leftPos = new Vector3(player.transform.position.x - distanceFromPlayer,
-                                      transform.position.y,
-                                      transform.position.z);
+        float distanceFromPlayer = gameManager.EnemySpawnDistance;
+        Vector3 spawnOrigin = new(player.transform.position.x, transform.position.y, transform.position.z);
+        Vector3 rightPosition = spawnOrigin + Vector3.right * distanceFromPlayer;
+        Vector3 leftPosition = spawnOrigin + Vector3.left * distanceFromPlayer;
 
-        int sideSpawn = Random.Range(1, 4);
-        int enemyType = Random.Range(0, 2); // 0: Basic, 1: Medium
-        int dontSpawn = Random.Range(0, 10); // 30% chance to not spawn
-        if (dontSpawn < 3) return;
+        SpawnSide spawnSide = (SpawnSide)Random.Range(0, 3);
+        bool spawnMediumEnemy = Random.value >= 0.5f;
+        int killed = gameManager.EnemiesKilled;
+        float spawnSpeed;
+        int basicLives;
 
-        // Difficulty Calculation
-        float spawnSpeed = 1.0f;
-        int basicLives = 1;
-        int killed = gameManager.enemiesKilled;
-
-        if (killed < 5)
+        if (killed < FirstDifficultyThreshold)
         {
             spawnSpeed = 1.5f;
             basicLives = 1;
         }
-        else if (killed < 10)
+        else if (killed < SecondDifficultyThreshold)
         {
             spawnSpeed = 2.5f;
-            basicLives = (Random.value < 0.3f) ? 2 : 1;
+            basicLives = Random.value < 0.3f ? 2 : 1;
         }
         else
         {
             spawnSpeed = 3.5f;
-            basicLives = (Random.value < 0.65f) ? 2 : 1;
+            basicLives = Random.value < 0.65f ? 2 : 1;
         }
 
-        // Colors
-        Color redColor = new Color32(133, 28, 4, 255);
-        Color yellowColor = new Color32(255, 198, 0, 255);
-        Color purpleColor = new Color(0.196f, 0.059f, 0.207f);
-
-        System.Action<GameObject> configureEnemy = (enemyObj) => {
-            EnemyBase enemy = enemyObj.GetComponent<EnemyBase>();
-            if (enemy is BasicEnemyController)
-            {
-                Color c = (basicLives > 1) ? yellowColor : redColor;
-                enemy.Initialize(player.transform, spawnSpeed, basicLives, c);
-            }
-            else if (enemy is MediumEnemyController)
-            {
-                enemy.Initialize(player.transform, spawnSpeed, 3, purpleColor);
-            }
-        };
-
-        switch (sideSpawn)
+        switch (spawnSide)
         {
-            case 1:
-                if (enemyType == 0) configureEnemy(Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity));
-                else configureEnemy(Instantiate(mediumEnemyPrefab, rightPos, Quaternion.identity));
+            case SpawnSide.Right:
+                SpawnEnemy(rightPosition, spawnMediumEnemy, spawnSpeed, basicLives);
                 break;
-            case 2:
-                if (enemyType == 0) configureEnemy(Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity));
-                else configureEnemy(Instantiate(mediumEnemyPrefab, leftPos, Quaternion.identity));
+            case SpawnSide.Left:
+                SpawnEnemy(leftPosition, spawnMediumEnemy, spawnSpeed, basicLives);
                 break;
-            case 3:
-                if (enemyType == 0) configureEnemy(Instantiate(basicEnemyPrefab, rightPos, Quaternion.identity));
-                else configureEnemy(Instantiate(mediumEnemyPrefab, rightPos, Quaternion.identity));
-
-                if (enemyType == 0) configureEnemy(Instantiate(basicEnemyPrefab, leftPos, Quaternion.identity));
-                else configureEnemy(Instantiate(mediumEnemyPrefab, leftPos, Quaternion.identity));
+            case SpawnSide.Both:
+                SpawnEnemy(rightPosition, spawnMediumEnemy, spawnSpeed, basicLives);
+                SpawnEnemy(leftPosition, spawnMediumEnemy, spawnSpeed, basicLives);
                 break;
         }
+    }
+
+    private void SpawnEnemy(Vector3 position, bool spawnMediumEnemy, float speed, int basicLives)
+    {
+        GameObject prefab = spawnMediumEnemy ? mediumEnemyPrefab : basicEnemyPrefab;
+        GameObject enemyObject = Instantiate(prefab, position, Quaternion.identity);
+
+        if (!enemyObject.TryGetComponent(out EnemyBase enemy))
+        {
+            Debug.LogError($"Enemy prefab '{prefab.name}' is missing an EnemyBase component.", prefab);
+            Destroy(enemyObject);
+            return;
+        }
+
+        Color initialColor = spawnMediumEnemy
+            ? new Color(0.196f, 0.059f, 0.207f)
+            : basicLives > 1
+                ? new Color32(255, 198, 0, 255)
+                : new Color32(133, 28, 4, 255);
+        int lives = spawnMediumEnemy ? 3 : basicLives;
+        enemy.Initialize(player.transform, speed, lives, initialColor);
+    }
+
+    private enum SpawnSide
+    {
+        Right,
+        Left,
+        Both
     }
 }

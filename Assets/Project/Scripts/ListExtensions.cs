@@ -1,18 +1,12 @@
 using System.Collections.Generic;
-using UnityEngine;
-
 public static class ListExtensions
 {
-    private static System.Random rng = new System.Random();
-
     public static void Shuffle<T>(this IList<T> list)
     {
-        int n = list.Count;
-        while (n > 1)
+        for (int index = list.Count - 1; index > 0; index--)
         {
-            n--;
-            int k = rng.Next(n + 1);
-            (list[n], list[k]) = (list[k], list[n]);
+            int randomIndex = UnityEngine.Random.Range(0, index + 1);
+            (list[index], list[randomIndex]) = (list[randomIndex], list[index]);
         }
     }
 }
