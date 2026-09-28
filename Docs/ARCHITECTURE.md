@@ -55,6 +55,8 @@ Combo state and animation selection remain player presentation concerns. Shader 
 
 `EnemyDifficultyPolicy` deterministically maps kill count and a random roll to a spawn profile. `EnemySpawner` owns only Unity-specific random sampling, positions, and prefab creation. Spawn cadence comes from the core session and is clamped to a safe minimum.
 
+When a medium multi-life enemy teleports behind the player after a non-lethal hit, its distance is derived from `PlayerAttackRange`. Changing slash reach therefore keeps the enemy at the edge of the next slash without requiring a second distance setting.
+
 ## UI and persistence
 
 UI listeners subscribe and unsubscribe with the Unity object lifecycle. Button listeners registered in code are removed on destruction.

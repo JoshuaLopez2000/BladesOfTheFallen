@@ -25,5 +25,4 @@ MonoBehaviour:
   enemySpawnDistance: 10
   distanceBetweenEnemies: 2
   basicEnemyAttackRange: 3
-  mediumEnemyTeleportDistance: 4
   distanceAfterPlayerHit: 4

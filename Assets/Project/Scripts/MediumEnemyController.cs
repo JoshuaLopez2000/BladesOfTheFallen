@@ -43,7 +43,8 @@ public class MediumEnemyController : EnemyBase
             mediumEnemyAnimator.SetTrigger("GetHit");
             SetColor(enemyLives == 1 ? redColor : yellowColor);
 
-            Vector3 teleportPosition = player.transform.position - player.transform.forward * GameManager.MediumEnemyTeleportDistance;
+            Vector3 teleportPosition = player.transform.position
+                - player.transform.forward * GameManager.PlayerAttackRange;
             teleportPosition.y = transform.position.y;
             StartCoroutine(WaitAndTeleport(0.1f, teleportPosition));
         }

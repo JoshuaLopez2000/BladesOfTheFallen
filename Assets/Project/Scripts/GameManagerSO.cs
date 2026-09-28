@@ -37,8 +37,6 @@ public class GameManagerSO : ScriptableObject
 
     [Header("Enemies")]
     [SerializeField, Min(0f)] private float basicEnemyAttackRange = 2f;
-    [FormerlySerializedAs("mediumEnemyTPDistance")]
-    [SerializeField, Min(0f)] private float mediumEnemyTeleportDistance = 4f;
     [FormerlySerializedAs("distanceAfterHitPlayer")]
     [SerializeField, Min(0f)] private float distanceAfterPlayerHit = 8f;
 
@@ -58,7 +56,6 @@ public class GameManagerSO : ScriptableObject
     public float EnemySpawnDistance => enemySpawnDistance;
     public float DistanceBetweenEnemies => distanceBetweenEnemies;
     public float BasicEnemyAttackRange => basicEnemyAttackRange;
-    public float MediumEnemyTeleportDistance => mediumEnemyTeleportDistance;
     public float DistanceAfterPlayerHit => distanceAfterPlayerHit;
 
     public event Action<int> OnScoreChanged;
