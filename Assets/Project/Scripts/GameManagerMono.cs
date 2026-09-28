@@ -8,18 +8,25 @@ public class GameManagerMono : MonoBehaviour
     [SerializeField] private GameManagerSO gameManager;
 
     private Coroutine timeScaleCoroutine;
-
-    public static GameManagerMono Instance { get; private set; }
+    private static GameManagerMono activeInstance;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (activeInstance != null && activeInstance != this)
         {
+            enabled = false;
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
+        activeInstance = this;
+
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManagerMono requires a GameManagerSO reference.", this);
+            enabled = false;
+            return;
+        }
 
         switch (gameManager.CurrentState)
         {
@@ -35,11 +42,41 @@ public class GameManagerMono : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManagerMono requires a GameManagerSO reference.", this);
+            enabled = false;
+            return;
+        }
+
+        gameManager.PauseRequested += HandlePauseRequested;
+        gameManager.ResumeRequested += HandleResumeRequested;
+        gameManager.HitStopRequested += HandleHitStopRequested;
+        gameManager.RestartRequested += RestartCurrentScene;
+        gameManager.MainMenuRequested += GoToMainMenu;
+    }
+
+    private void OnDisable()
+    {
+        if (gameManager == null)
+        {
+            return;
+        }
+
+        gameManager.PauseRequested -= HandlePauseRequested;
+        gameManager.ResumeRequested -= HandleResumeRequested;
+        gameManager.HitStopRequested -= HandleHitStopRequested;
+        gameManager.RestartRequested -= RestartCurrentScene;
+        gameManager.MainMenuRequested -= GoToMainMenu;
+    }
+
     private void OnDestroy()
     {
-        if (Instance == this)
+        if (activeInstance == this)
         {
-            Instance = null;
+            activeInstance = null;
         }
     }
 
@@ -157,9 +194,31 @@ public class GameManagerMono : MonoBehaviour
         gameManager.ResetGame();
     }
 
+    private void HandlePauseRequested(float duration)
+    {
+        Pause(duration, gameManager.ReportTimeScale);
+    }
+
+    private void HandleResumeRequested(float duration)
+    {
+        Resume(duration, gameManager.ReportTimeScale);
+    }
+
+    private void HandleHitStopRequested(float slowFactor, float duration)
+    {
+        HitStop(slowFactor, duration, gameManager.ReportTimeScale);
+    }
+
+    private void RestartCurrentScene()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+    }
+
     public void GoToMainMenu()
     {
         gameManager.ResetSession();
+        Time.timeScale = 1f;
         SceneManager.LoadSceneAsync("MainScreen", LoadSceneMode.Single);
     }
 }

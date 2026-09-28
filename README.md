@@ -18,8 +18,9 @@
 
 ## Technical highlights
 
-- **Event-driven state:** `GameManagerSO` owns the current score, lives, difficulty state, and gameplay events. UI and enemies subscribe only to the events they need.
-- **Separated runtime assembly:** project-owned gameplay code is isolated in `BladesOfTheFallen.Runtime`; Edit Mode tests compile in a separate test assembly.
+- **Engine-independent game core:** session state, difficulty progression, and high-score rules live in `BladesOfTheFallen.Core`, which has no Unity dependency.
+- **Adapter-based runtime:** `GameManagerSO`, spawners, UI, scene loading, time scaling, and JSON storage adapt Unity APIs to the core instead of owning business rules.
+- **Explicit assembly boundaries:** core rules, Unity runtime code, and Edit Mode tests compile separately, preventing accidental engine coupling in the domain layer.
 - **Allocation-conscious rendering:** enemy and player shader overrides reuse `MaterialPropertyBlock` instances instead of cloning materials or allocating every frame.
 - **Shared enemy behavior:** `EnemyBase` centralizes targeting, movement, spacing, hit recovery, score registration, and shader updates. Enemy subclasses contain only type-specific behavior.
 - **Bounded world streaming:** `TerrainManager` keeps a small window of terrain tiles around the player and destroys tiles outside that window.
@@ -34,9 +35,12 @@ See [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) for the runtime responsibilitie
 Assets/Project/
 ├── Prefabs/                 Game-owned prefabs and UI
 ├── Scenes/                  MainScreen, Level1, and development scenes
-├── Scriptable Objects/      Runtime configuration/state assets
-├── Scripts/                 Production C# assembly
-└── Tests/EditMode/          Fast state and utility tests
+├── Scriptable Objects/      Runtime configuration assets
+├── Scripts/
+│   ├── Core/                Engine-independent rules assembly
+│   ├── Infrastructure/      Persistence and other Unity-side adapters
+│   └── *.cs                 Scene-facing runtime components
+└── Tests/EditMode/          Fast core, state, and utility tests
 ```
 
 Third-party art, shaders, effects, and packages remain in their vendor folders under `Assets/`; project-authored gameplay code is kept under `Assets/Project`.
@@ -62,7 +66,7 @@ Using the recorded editor version is recommended because opening the project in 
 
 ## Validation
 
-The project includes Edit Mode coverage for score events, game-over transitions, spawn-interval clamping, and list shuffling. Run it from **Window > General > Test Runner > EditMode**.
+The project includes Edit Mode coverage for session resets, score events, game-over transitions, difficulty tiers, high-score registration, spawn-interval clamping, and list shuffling. Run it from **Window > General > Test Runner > EditMode**.
 
 The main menu and gameplay scenes are also suitable for a short smoke test: launch from `MainScreen`, enter `Level1`, attack in both directions, parry, pause/resume, restart, and return to the menu.
 

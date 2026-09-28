@@ -2,6 +2,7 @@
   "name": "BladesOfTheFallen.Runtime",
   "rootNamespace": "BladesOfTheFallen",
   "references": [
+    "BladesOfTheFallen.Core",
     "Unity.InputSystem",
     "Unity.TextMeshPro",
     "UnityEngine.UI"

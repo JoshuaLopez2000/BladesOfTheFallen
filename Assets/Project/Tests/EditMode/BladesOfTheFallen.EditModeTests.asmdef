@@ -2,6 +2,7 @@
   "name": "BladesOfTheFallen.EditModeTests",
   "rootNamespace": "BladesOfTheFallen.Tests",
   "references": [
+    "BladesOfTheFallen.Core",
     "BladesOfTheFallen.Runtime"
   ],
   "includePlatforms": [

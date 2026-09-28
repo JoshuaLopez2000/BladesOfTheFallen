@@ -1,9 +1,8 @@
+using BladesOfTheFallen.Core;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    private const int FirstDifficultyThreshold = 5;
-    private const int SecondDifficultyThreshold = 10;
     private const float SkipSpawnChance = 0.3f;
 
     [SerializeField] private GameManagerSO gameManager;
@@ -51,7 +50,7 @@ public class EnemySpawner : MonoBehaviour
 
     private void UpdateSpawnInterval(int totalKilled)
     {
-        if (totalKilled is 10 or 20 or 35)
+        if (EnemyDifficultyPolicy.ShouldReduceSpawnInterval(totalKilled))
         {
             gameManager.DecreaseSpawnInterval();
         }
@@ -72,36 +71,19 @@ public class EnemySpawner : MonoBehaviour
         SpawnSide spawnSide = (SpawnSide)Random.Range(0, 3);
         bool spawnMediumEnemy = Random.value >= 0.5f;
         int killed = gameManager.EnemiesKilled;
-        float spawnSpeed;
-        int basicLives;
-
-        if (killed < FirstDifficultyThreshold)
-        {
-            spawnSpeed = 1.5f;
-            basicLives = 1;
-        }
-        else if (killed < SecondDifficultyThreshold)
-        {
-            spawnSpeed = 2.5f;
-            basicLives = Random.value < 0.3f ? 2 : 1;
-        }
-        else
-        {
-            spawnSpeed = 3.5f;
-            basicLives = Random.value < 0.65f ? 2 : 1;
-        }
+        EnemySpawnProfile profile = EnemyDifficultyPolicy.Evaluate(killed, Random.value);
 
         switch (spawnSide)
         {
             case SpawnSide.Right:
-                SpawnEnemy(rightPosition, spawnMediumEnemy, spawnSpeed, basicLives);
+                SpawnEnemy(rightPosition, spawnMediumEnemy, profile.Speed, profile.BasicEnemyLives);
                 break;
             case SpawnSide.Left:
-                SpawnEnemy(leftPosition, spawnMediumEnemy, spawnSpeed, basicLives);
+                SpawnEnemy(leftPosition, spawnMediumEnemy, profile.Speed, profile.BasicEnemyLives);
                 break;
             case SpawnSide.Both:
-                SpawnEnemy(rightPosition, spawnMediumEnemy, spawnSpeed, basicLives);
-                SpawnEnemy(leftPosition, spawnMediumEnemy, spawnSpeed, basicLives);
+                SpawnEnemy(rightPosition, spawnMediumEnemy, profile.Speed, profile.BasicEnemyLives);
+                SpawnEnemy(leftPosition, spawnMediumEnemy, profile.Speed, profile.BasicEnemyLives);
                 break;
         }
     }

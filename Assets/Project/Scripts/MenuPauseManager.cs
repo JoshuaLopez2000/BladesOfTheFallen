@@ -62,10 +62,7 @@ public class MenuPauseManager : MonoBehaviour
 
     private void OnQuitButtonClicked()
     {
-        if (GameManagerMono.Instance != null)
-        {
-            GameManagerMono.Instance.GoToMainMenu();
-        }
+        gameManager.ReturnToMainMenu();
     }
 
     private void HandleGameOver()

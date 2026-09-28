@@ -1,6 +1,6 @@
 using System;
+using BladesOfTheFallen.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "GameManager", menuName = "Blades of the Fallen/Game Manager")]
@@ -11,11 +11,19 @@ public class GameManagerSO : ScriptableObject
     private const float DefaultEnemySpeed = 1f;
     private const float MinimumSpawnInterval = 0.75f;
 
-    [Header("Player")]
-    [SerializeField, Min(1)] private int playerLives = DefaultPlayerLives;
-    [SerializeField] private int _playerScore;
+    [Header("Session Defaults")]
+    [FormerlySerializedAs("playerLives")]
+    [SerializeField, Min(1)] private int initialPlayerLives = DefaultPlayerLives;
+    [FormerlySerializedAs("spawnInterval")]
+    [SerializeField, Min(MinimumSpawnInterval)] private float initialSpawnInterval = DefaultSpawnInterval;
+    [FormerlySerializedAs("enemySpeed")]
+    [SerializeField, Min(0f)] private float initialEnemySpeed = DefaultEnemySpeed;
+
+    [Header("Scoring")]
     [SerializeField, Min(0)] private int scorePerEnemy = 10;
     [SerializeField, Min(0)] private int scorePerHit = 5;
+
+    [Header("Player")]
     [FormerlySerializedAs("PlayerAttackRange")]
     [SerializeField, Min(0f)] private float playerAttackRange = 8f;
     [FormerlySerializedAs("PlayerMaxApproachDistance")]
@@ -23,10 +31,7 @@ public class GameManagerSO : ScriptableObject
     [FormerlySerializedAs("hasEspecialHability")]
     [SerializeField] private bool hasSpecialAbility;
 
-    [Header("Game")]
-    [SerializeField] private int _enemiesKilled;
-    [SerializeField, Min(MinimumSpawnInterval)] private float spawnInterval = DefaultSpawnInterval;
-    [SerializeField, Min(0f)] private float enemySpeed = DefaultEnemySpeed;
+    [Header("Spawning")]
     [SerializeField, Min(0f)] private float enemySpawnDistance = 10f;
     [SerializeField, Min(0f)] private float distanceBetweenEnemies = 0.5f;
 
@@ -37,33 +42,19 @@ public class GameManagerSO : ScriptableObject
     [FormerlySerializedAs("distanceAfterHitPlayer")]
     [SerializeField, Min(0f)] private float distanceAfterPlayerHit = 8f;
 
-    public GameState CurrentState { get; private set; } = GameState.Playing;
-    public int PlayerLives => playerLives;
-    public int PlayerScore
-    {
-        get => _playerScore;
-        private set
-        {
-            _playerScore = value;
-            OnScoreChanged?.Invoke(_playerScore);
-        }
-    }
+    [NonSerialized] private GameSession session;
+
+    public GameState CurrentState => (GameState)Session.State;
+    public int PlayerLives => Session.Lives;
+    public int PlayerScore => Session.Score;
     public int ScorePerEnemy => scorePerEnemy;
     public int ScorePerHit => scorePerHit;
     public float PlayerAttackRange => playerAttackRange;
     public float PlayerMaxApproachDistance => playerMaxApproachDistance;
     public bool HasSpecialAbility => hasSpecialAbility;
-    public int EnemiesKilled
-    {
-        get => _enemiesKilled;
-        private set
-        {
-            _enemiesKilled = value;
-            OnEnemiesKilledChanged?.Invoke(_enemiesKilled);
-        }
-    }
-    public float SpawnInterval => spawnInterval;
-    public float EnemySpeed => enemySpeed;
+    public int EnemiesKilled => Session.EnemiesKilled;
+    public float SpawnInterval => Session.SpawnInterval;
+    public float EnemySpeed => Session.EnemySpeed;
     public float EnemySpawnDistance => enemySpawnDistance;
     public float DistanceBetweenEnemies => distanceBetweenEnemies;
     public float BasicEnemyAttackRange => basicEnemyAttackRange;
@@ -76,98 +67,118 @@ public class GameManagerSO : ScriptableObject
     public event Action<float> OnTimeScaleChanged;
     public event Action OnGameOver;
 
+    // Requests keep the state asset independent from scenes and coroutines.
+    public event Action<float> PauseRequested;
+    public event Action<float> ResumeRequested;
+    public event Action<float, float> HitStopRequested;
+    public event Action RestartRequested;
+    public event Action MainMenuRequested;
+
+    private GameSession Session
+    {
+        get
+        {
+            if (session == null)
+            {
+                CreateSession();
+            }
+
+            return session;
+        }
+    }
+
     private void OnEnable()
     {
-        ResetRuntimeState();
+        CreateSession();
+    }
+
+    private void OnDisable()
+    {
+        DetachSessionEvents();
     }
 
     public void ResetGame()
     {
         ResetSession();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        RestartRequested?.Invoke();
     }
 
     public void ResetSession()
     {
-        ResetRuntimeState();
-        Time.timeScale = 1f;
+        Session.Reset();
     }
 
-    private void ResetRuntimeState()
+    public void ReturnToMainMenu()
     {
-        CurrentState = GameState.Playing;
-        playerLives = DefaultPlayerLives;
-        PlayerScore = 0;
-        spawnInterval = DefaultSpawnInterval;
-        enemySpeed = DefaultEnemySpeed;
-        EnemiesKilled = 0;
+        MainMenuRequested?.Invoke();
     }
 
-    public void IncreaseScore(int amount)
-    {
-        PlayerScore = Mathf.Max(0, PlayerScore + amount);
-    }
-
-    public void DecreaseLife()
-    {
-        if (playerLives == 0)
-        {
-            return;
-        }
-
-        playerLives--;
-        OnPlayerLivesChanged?.Invoke(playerLives);
-
-        if (playerLives == 0)
-        {
-            ChangeState(GameState.GameOver);
-        }
-    }
-
-    public void RegisterEnemyKilled()
-    {
-        EnemiesKilled++;
-    }
-
-    public void DecreaseSpawnInterval(float amount = 0.75f)
-    {
-        spawnInterval = Mathf.Max(MinimumSpawnInterval, spawnInterval - Mathf.Max(0f, amount));
-    }
+    public void IncreaseScore(int amount) => Session.AddScore(amount);
+    public void DecreaseLife() => Session.RemoveLife();
+    public void RegisterEnemyKilled() => Session.RegisterEnemyKilled();
+    public void DecreaseSpawnInterval(float amount = 0.75f) => Session.ReduceSpawnInterval(amount);
 
     public void ExponentialPause(float duration = 1f)
     {
-        if (GameManagerMono.Instance != null)
-        {
-            GameManagerMono.Instance.Pause(duration, OnTimeScaleChanged);
-        }
+        PauseRequested?.Invoke(Mathf.Max(0f, duration));
     }
 
     public void ExponentialResume(float duration = 1f)
     {
-        if (GameManagerMono.Instance != null)
-        {
-            GameManagerMono.Instance.Resume(duration, OnTimeScaleChanged);
-        }
+        ResumeRequested?.Invoke(Mathf.Max(0f, duration));
     }
 
     public void HitTimeEffect(float slowFactor = 0.2f, float duration = 0.5f)
     {
-        if (GameManagerMono.Instance != null)
-        {
-            GameManagerMono.Instance.HitStop(slowFactor, duration, OnTimeScaleChanged);
-        }
+        HitStopRequested?.Invoke(Mathf.Clamp01(slowFactor), Mathf.Max(0f, duration));
     }
 
     public void ChangeState(GameState newState)
     {
-        CurrentState = newState;
-
-        if (CurrentState == GameState.GameOver)
-        {
-            OnGameOver?.Invoke();
-        }
+        Session.ChangeState((SessionState)newState);
     }
 
+    internal void ReportTimeScale(float value)
+    {
+        OnTimeScaleChanged?.Invoke(value);
+    }
+
+    private void CreateSession()
+    {
+        DetachSessionEvents();
+        session = new GameSession(
+            initialPlayerLives,
+            initialSpawnInterval,
+            MinimumSpawnInterval,
+            initialEnemySpeed);
+        AttachSessionEvents();
+    }
+
+    private void AttachSessionEvents()
+    {
+        session.ScoreChanged += HandleScoreChanged;
+        session.EnemiesKilledChanged += HandleEnemiesKilledChanged;
+        session.LivesChanged += HandleLivesChanged;
+        session.GameOver += HandleGameOver;
+    }
+
+    private void DetachSessionEvents()
+    {
+        if (session == null)
+        {
+            return;
+        }
+
+        session.ScoreChanged -= HandleScoreChanged;
+        session.EnemiesKilledChanged -= HandleEnemiesKilledChanged;
+        session.LivesChanged -= HandleLivesChanged;
+        session.GameOver -= HandleGameOver;
+    }
+
+    private void HandleScoreChanged(int score) => OnScoreChanged?.Invoke(score);
+    private void HandleEnemiesKilledChanged(int killed) => OnEnemiesKilledChanged?.Invoke(killed);
+    private void HandleLivesChanged(int lives) => OnPlayerLivesChanged?.Invoke(lives);
+    private void HandleGameOver() => OnGameOver?.Invoke();
 
     public enum GameState
     {
