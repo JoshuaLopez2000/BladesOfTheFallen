@@ -37,7 +37,17 @@ The asset publishes four event streams:
 
 `InputReaderSO` is an input event channel. `PlayerController` can receive those events or fall back to public UI entry points used by serialized UnityEvents.
 
-The player performs a directional raycast, resolves an `EnemyBase`, and delegates damage to the enemy. Combo state and animation selection remain player concerns. Shader state uses a cached `MaterialPropertyBlock` and updates only when the special-ability state changes.
+`PlayerCombatStateMachine` defines the legal combat phases without depending on Unity: ready, attack startup, attack active, parry startup, parry active, recovery, and hit stun. `PlayerController` advances those phases with tuned coroutines and rejects actions outside the ready phase. Gesture recognition remains outside this state machine.
+
+Slashes resolve damage during their active phase with a directional raycast. Before a slash resolves, a new slash interrupts it, restarts the attack animation from frame zero, and replaces the pending attack direction. Successful slashes have no recovery cooldown. A missed slash enters a dedicated penalty phase that cannot be cancelled until its configured recovery expires. Hit stun and an active parry window also cannot be cancelled by slashing. Enemy hit recovery matches the slash cadence so a valid follow-up is not incorrectly treated as a miss.
+
+Parries no longer deal ordinary attack damage. They only succeed when an animation-controlled `EnemyAttack` collider enters the player during the active parry window. A successful parry cancels that hitbox, stuns and pushes the enemy, awards hit score, and contributes to the combo.
+
+During the enemy animation frames leading into and overlapping its active attack hitbox, `EnemyBase` alternates a cyan parry-cue color with the enemy's current health color. The cue is derived from normalized animation time, so it remains synchronized when animation playback speed changes and restores the correct health color when interrupted.
+
+Incoming damage interrupts the current combat action and enters hit stun. The first hit also starts a separate invulnerability window, preventing simultaneous attack colliders from removing multiple lives. The player can return to action before invulnerability expires, preserving a fast pace without allowing unfair burst damage.
+
+Combo state and animation selection remain player presentation concerns. Shader state uses a cached `MaterialPropertyBlock` and updates only when the special-ability state changes.
 
 ## Enemies and spawning
 

@@ -3,6 +3,7 @@ using UnityEngine;
 public class BasicEnemyController : EnemyBase
 {
     [SerializeField] private Animator enemyAnimator;
+    protected override Animator EnemyAnimator => enemyAnimator;
 
     public override void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
@@ -26,24 +27,16 @@ public class BasicEnemyController : EnemyBase
 
     private void Update()
     {
-        UpdateEnemy(enemyAnimator);
+        UpdateEnemy();
     }
 
-    public override void GiveSpace(int lives)
+    public override bool TryHit()
     {
-        base.GiveSpace(lives);
-        enemyAnimator.SetTrigger("GetHit");
-        getHit = true;
-    }
-
-    public override void Hit()
-    {
-        if (getHit)
+        if (!BeginHitRecovery(DefaultHitRecoveryDuration))
         {
-            return;
+            return false;
         }
 
-        getHit = true;
         if (enemyLives > 1)
         {
             enemyLives--;
@@ -57,5 +50,7 @@ public class BasicEnemyController : EnemyBase
             enemyAnimator.SetBool("IsDead", true);
             Die(0.1f);
         }
+
+        return true;
     }
 }

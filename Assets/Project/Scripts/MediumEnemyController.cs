@@ -4,6 +4,7 @@ using UnityEngine;
 public class MediumEnemyController : EnemyBase
 {
     [SerializeField] private Animator mediumEnemyAnimator;
+    protected override Animator EnemyAnimator => mediumEnemyAnimator;
 
     public override void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
@@ -25,17 +26,16 @@ public class MediumEnemyController : EnemyBase
 
     private void Update()
     {
-        UpdateEnemy(mediumEnemyAnimator);
+        UpdateEnemy();
     }
 
-    public override void Hit()
+    public override bool TryHit()
     {
-        if (getHit)
+        if (!BeginHitRecovery(DefaultHitRecoveryDuration))
         {
-            return;
+            return false;
         }
 
-        getHit = true;
         enemyLives--;
         if (enemyLives > 0)
         {
@@ -53,6 +53,8 @@ public class MediumEnemyController : EnemyBase
             mediumEnemyAnimator.SetBool("IsDead", true);
             Die(0f);
         }
+
+        return true;
     }
 
     private IEnumerator WaitAndTeleport(float waitTime, Vector3 position)

@@ -1,18 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using BladesOfTheFallen.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
 public class PlayerController : MonoBehaviour
 {
-    private const float AttackRecoveryDuration = 0.8f;
     private const float ComboTimeout = 1f;
-    private const float ParryCooldown = 3f;
     private const int ComboDisplayThreshold = 10;
 
     private static readonly int AttackIdParameter = Animator.StringToHash("idAttack");
-    private static readonly int AttackTrigger = Animator.StringToHash("Attack");
+    private static readonly int AttackState = Animator.StringToHash("Base Layer.Attack");
     private static readonly int ParryTrigger = Animator.StringToHash("Parry");
     private static readonly int GetHitTrigger = Animator.StringToHash("GetHit");
     private static readonly int HitEnemyParameter = Animator.StringToHash("HitEnemy");
@@ -23,6 +22,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputReaderSO inputReader;
     [SerializeField] private Animator animator;
     [SerializeField] private AudioSource audioSource;
+
+    [Header("Combat Timing")]
+    [SerializeField, Min(0f)] private float attackStartupDuration = 0.05f;
+    [SerializeField, Min(0f)] private float attackActiveDuration = 0.08f;
+    [SerializeField, Min(0f)] private float missedAttackRecoveryDuration = 0.55f;
+    [SerializeField, Min(0f)] private float parryStartupDuration = 0.08f;
+    [SerializeField, Min(0f)] private float parryActiveDuration = 0.28f;
+    [SerializeField, Min(0f)] private float parryRecoveryDuration = 0.18f;
+    [SerializeField, Min(0f)] private float parryCooldown = 1.25f;
+    [SerializeField, Min(0f)] private float hitStunDuration = 0.3f;
+    [SerializeField, Min(0f)] private float hitRecoveryDuration = 0.15f;
+    [SerializeField, Min(0f)] private float damageInvulnerabilityDuration = 0.7f;
 
     [Header("Audio")]
     [FormerlySerializedAs("slashs")]
@@ -36,17 +47,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool showDebugRays;
 
     private readonly List<int> attackIds = new() { 0, 1, 2 };
-    private MaterialPropertyBlock propertyBlock;
+    private readonly PlayerCombatStateMachine combat = new();
 
+    private MaterialPropertyBlock propertyBlock;
+    private Coroutine combatRoutine;
+    private Coroutine invulnerabilityRoutine;
     private float attackRange = 2f;
     private float maxApproachDistance = 2f;
     private float lastAttackTime;
-    private float lastParryTime = -ParryCooldown;
+    private float lastParryTime = float.NegativeInfinity;
     private int attackId;
     private int combo;
-    private bool playerCanHit = true;
-    private bool resetting;
     private bool? appliedSpecialAbilityState;
+
+    public PlayerCombatPhase CombatPhase => combat.Phase;
+    public bool IsDamageInvulnerable => combat.IsDamageInvulnerable;
 
     private void Awake()
     {
@@ -60,6 +75,8 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        combat.Reset();
+
         if (inputReader == null)
         {
             return;
@@ -72,14 +89,17 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (inputReader == null)
+        if (inputReader != null)
         {
-            return;
+            inputReader.OnSlashRight -= HandleSlashRight;
+            inputReader.OnSlashLeft -= HandleSlashLeft;
+            inputReader.OnParry -= HandleParry;
         }
 
-        inputReader.OnSlashRight -= HandleSlashRight;
-        inputReader.OnSlashLeft -= HandleSlashLeft;
-        inputReader.OnParry -= HandleParry;
+        StopAllCoroutines();
+        combatRoutine = null;
+        invulnerabilityRoutine = null;
+        combat.Reset();
     }
 
     private void Start()
@@ -100,11 +120,6 @@ public class PlayerController : MonoBehaviour
             Debug.DrawRay(origin, -transform.forward * attackRange, Color.blue);
         }
 #endif
-
-        if (!playerCanHit && !resetting)
-        {
-            StartCoroutine(WaitAndReset());
-        }
 
         ApplySpecialAbilityVisual(gameManager.HasSpecialAbility);
 
@@ -152,93 +167,134 @@ public class PlayerController : MonoBehaviour
 
     private void HandleSlashRight()
     {
-        if (!playerCanHit)
-        {
-            return;
-        }
-
-        transform.rotation = Quaternion.Euler(0f, 90f, 0f);
-        PerformSlash();
+        TryStartSlash(Quaternion.Euler(0f, 90f, 0f));
     }
 
     private void HandleSlashLeft()
     {
-        if (!playerCanHit)
+        TryStartSlash(Quaternion.Euler(0f, 270f, 0f));
+    }
+
+    private void TryStartSlash(Quaternion facing)
+    {
+        if (!combat.TryBeginAttack())
         {
             return;
         }
 
-        transform.rotation = Quaternion.Euler(0f, 270f, 0f);
-        PerformSlash();
+        transform.rotation = facing;
+        animator.SetBool(HitEnemyParameter, false);
+        SelectNextAttack();
+        animator.SetFloat(AttackIdParameter, attackId);
+        animator.Play(AttackState, 0, 0f);
+        StartCombatRoutine(SlashSequence(transform.forward));
     }
 
     private void HandleParry()
     {
-        if (playerCanHit)
-        {
-            PerformParry();
-        }
-    }
-
-    private void PerformSlash()
-    {
-        bool hitEnemy = TryHitEnemy(transform.forward, attackRange, out RaycastHit hit);
-        if (hitEnemy)
-        {
-            ApproachEnemy(hit.collider.transform);
-        }
-        else
-        {
-            playerCanHit = false;
-            float directionX = Mathf.Sign(transform.forward.x);
-            Vector3 targetPosition = transform.position + Vector3.right * (directionX * attackRange);
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                targetPosition,
-                Mathf.Max(0f, attackRange - maxApproachDistance));
-        }
-
-        SelectNextAttack();
-        animator.SetFloat(AttackIdParameter, attackId);
-        animator.SetTrigger(AttackTrigger);
-        CompleteAttack(hitEnemy);
-    }
-
-    private void PerformParry()
-    {
-        if (Time.time - lastParryTime < ParryCooldown)
+        if (Time.time - lastParryTime < parryCooldown || !combat.TryBeginParry())
         {
             return;
         }
 
         lastParryTime = Time.time;
-        float parryRange = attackRange * 0.5f;
-        bool hitEnemy = TryHitEnemy(transform.forward, parryRange, out _);
-        hitEnemy |= TryHitEnemy(-transform.forward, parryRange, out _);
-
+        animator.SetBool(HitEnemyParameter, false);
         animator.SetTrigger(ParryTrigger);
+
         if (audioSource != null && parrySound != null)
         {
             audioSource.PlayOneShot(parrySound);
         }
 
-        CompleteAttack(hitEnemy);
+        StartCombatRoutine(ParrySequence());
     }
 
-    private bool TryHitEnemy(Vector3 direction, float range, out RaycastHit hit)
+    private IEnumerator SlashSequence(Vector3 direction)
     {
+        yield return new WaitForSeconds(attackStartupDuration);
+        if (!combat.TryOpenAttackWindow())
+        {
+            combatRoutine = null;
+            yield break;
+        }
+
+        bool hitEnemy = TryHitEnemy(direction, attackRange, out EnemyBase enemy);
+        if (hitEnemy)
+        {
+            ApproachEnemy(enemy.transform);
+            CompleteSuccessfulAction();
+        }
+        else
+        {
+            MoveAfterMiss(direction);
+            combo = 0;
+            if (!combat.TryBeginMissRecovery())
+            {
+                combatRoutine = null;
+                yield break;
+            }
+
+            yield return new WaitForSeconds(missedAttackRecoveryDuration);
+            combat.TryBecomeReady();
+            combatRoutine = null;
+            yield break;
+        }
+
+        yield return new WaitForSeconds(attackActiveDuration);
+        if (!combat.TryBeginRecovery())
+        {
+            combatRoutine = null;
+            yield break;
+        }
+
+        combat.TryBecomeReady();
+        combatRoutine = null;
+    }
+
+    private IEnumerator ParrySequence()
+    {
+        yield return new WaitForSeconds(parryStartupDuration);
+        if (!combat.TryOpenParryWindow())
+        {
+            combatRoutine = null;
+            yield break;
+        }
+
+        yield return new WaitForSeconds(parryActiveDuration);
+        if (!combat.TryBeginRecovery())
+        {
+            combatRoutine = null;
+            yield break;
+        }
+
+        yield return new WaitForSeconds(parryRecoveryDuration);
+        combat.TryBecomeReady();
+        combatRoutine = null;
+    }
+
+    private bool TryHitEnemy(Vector3 direction, float range, out EnemyBase enemy)
+    {
+        enemy = null;
         Vector3 origin = transform.position + Vector3.up * 0.2f;
-        if (!Physics.Raycast(origin, direction, out hit, range) || !hit.collider.CompareTag("Enemy"))
+        if (!Physics.Raycast(
+                origin,
+                direction,
+                out RaycastHit hit,
+                range,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore)
+            || !hit.collider.CompareTag("Enemy"))
         {
             return false;
         }
 
-        if (!hit.collider.TryGetComponent(out EnemyBase enemy))
+        enemy = hit.collider.GetComponentInParent<EnemyBase>();
+        if (enemy == null || !enemy.TryHit())
         {
+            enemy = null;
             return false;
         }
 
-        enemy.Hit();
         animator.SetBool(HitEnemyParameter, true);
         return true;
     }
@@ -258,19 +314,22 @@ public class PlayerController : MonoBehaviour
             distanceX - maxApproachDistance);
     }
 
-    private void CompleteAttack(bool hitEnemy)
+    private void MoveAfterMiss(Vector3 direction)
     {
-        if (hitEnemy)
-        {
-            playerCanHit = true;
-            combo++;
-            gameManager.HitTimeEffect(0.2f, 0.15f);
-            SpawnComboText();
-            return;
-        }
+        float directionX = Mathf.Sign(direction.x);
+        Vector3 targetPosition = transform.position + Vector3.right * (directionX * attackRange);
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetPosition,
+            Mathf.Max(0f, attackRange - maxApproachDistance));
+    }
 
-        combo = 0;
-        animator.SetBool(HitEnemyParameter, false);
+    private void CompleteSuccessfulAction()
+    {
+        combo++;
+        lastAttackTime = Time.time;
+        gameManager.HitTimeEffect(0.2f, 0.15f);
+        SpawnComboText();
     }
 
     private void SelectNextAttack()
@@ -354,17 +413,73 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (combat.Phase == PlayerCombatPhase.ParryActive)
+        {
+            EnemyBase enemy = other.GetComponentInParent<EnemyBase>();
+            if (enemy != null && enemy.TryParry())
+            {
+                animator.SetBool(HitEnemyParameter, true);
+                CompleteSuccessfulAction();
+            }
+
+            return;
+        }
+
+        if (!combat.TryTakeDamage())
+        {
+            return;
+        }
+
+        InterruptCombatRoutine();
+        animator.SetBool(HitEnemyParameter, false);
         animator.SetTrigger(GetHitTrigger);
-        playerCanHit = false;
         combo = 0;
         gameManager.DecreaseLife();
+        StartCombatRoutine(HitReactionSequence());
+
+        if (invulnerabilityRoutine != null)
+        {
+            StopCoroutine(invulnerabilityRoutine);
+        }
+
+        invulnerabilityRoutine = StartCoroutine(DamageInvulnerabilitySequence());
     }
 
-    private IEnumerator WaitAndReset()
+    private IEnumerator HitReactionSequence()
     {
-        resetting = true;
-        yield return new WaitForSeconds(AttackRecoveryDuration);
-        playerCanHit = true;
-        resetting = false;
+        yield return new WaitForSeconds(hitStunDuration);
+        if (!combat.TryRecoverFromHit())
+        {
+            combatRoutine = null;
+            yield break;
+        }
+
+        yield return new WaitForSeconds(hitRecoveryDuration);
+        combat.TryBecomeReady();
+        combatRoutine = null;
+    }
+
+    private IEnumerator DamageInvulnerabilitySequence()
+    {
+        yield return new WaitForSeconds(damageInvulnerabilityDuration);
+        combat.EndDamageInvulnerability();
+        invulnerabilityRoutine = null;
+    }
+
+    private void StartCombatRoutine(IEnumerator sequence)
+    {
+        InterruptCombatRoutine();
+        combatRoutine = StartCoroutine(sequence);
+    }
+
+    private void InterruptCombatRoutine()
+    {
+        if (combatRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(combatRoutine);
+        combatRoutine = null;
     }
 }
