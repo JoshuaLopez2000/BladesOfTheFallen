@@ -8,20 +8,37 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private GameManagerSO gameManager;
     [SerializeField] private GameObject basicEnemyPrefab;
     [SerializeField] private GameObject mediumEnemyPrefab;
+    [SerializeField, Min(0)] private int basicEnemyPoolPrewarm = 8;
+    [SerializeField, Min(0)] private int mediumEnemyPoolPrewarm = 4;
 
-    private GameObject player;
+    private Transform player;
+    private EnemyPool basicEnemyPool;
+    private EnemyPool mediumEnemyPool;
     private float nextSpawnTime;
 
     private void Start()
     {
-        player = GameObject.FindWithTag("Player");
-        nextSpawnTime = Time.time + gameManager.SpawnInterval;
-
-        if (player == null)
+        GameObject playerObject = GameObject.FindWithTag("Player");
+        if (playerObject == null)
         {
             Debug.LogError("EnemySpawner requires a GameObject tagged 'Player'.", this);
             enabled = false;
+            return;
         }
+
+        if (!TryGetEnemyPrefab(basicEnemyPrefab, out EnemyBase basicEnemy)
+            || !TryGetEnemyPrefab(mediumEnemyPrefab, out EnemyBase mediumEnemy))
+        {
+            enabled = false;
+            return;
+        }
+
+        player = playerObject.transform;
+        Transform poolContainer = new GameObject("Enemy Pool").transform;
+        poolContainer.SetParent(transform, false);
+        basicEnemyPool = new EnemyPool(basicEnemy, poolContainer, basicEnemyPoolPrewarm);
+        mediumEnemyPool = new EnemyPool(mediumEnemy, poolContainer, mediumEnemyPoolPrewarm);
+        nextSpawnTime = Time.time + gameManager.SpawnInterval;
     }
 
     private void Update()
@@ -64,7 +81,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         float distanceFromPlayer = gameManager.EnemySpawnDistance;
-        Vector3 spawnOrigin = new(player.transform.position.x, transform.position.y, transform.position.z);
+        Vector3 spawnOrigin = new(player.position.x, transform.position.y, transform.position.z);
         Vector3 rightPosition = spawnOrigin + Vector3.right * distanceFromPlayer;
         Vector3 leftPosition = spawnOrigin + Vector3.left * distanceFromPlayer;
 
@@ -90,15 +107,8 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemy(Vector3 position, bool spawnMediumEnemy, float speed, int basicLives)
     {
-        GameObject prefab = spawnMediumEnemy ? mediumEnemyPrefab : basicEnemyPrefab;
-        GameObject enemyObject = Instantiate(prefab, position, Quaternion.identity);
-
-        if (!enemyObject.TryGetComponent(out EnemyBase enemy))
-        {
-            Debug.LogError($"Enemy prefab '{prefab.name}' is missing an EnemyBase component.", prefab);
-            Destroy(enemyObject);
-            return;
-        }
+        EnemyPool pool = spawnMediumEnemy ? mediumEnemyPool : basicEnemyPool;
+        EnemyBase enemy = pool.Acquire(position);
 
         Color initialColor = spawnMediumEnemy
             ? new Color(0.196f, 0.059f, 0.207f)
@@ -106,7 +116,20 @@ public class EnemySpawner : MonoBehaviour
                 ? new Color32(255, 198, 0, 255)
                 : new Color32(133, 28, 4, 255);
         int lives = spawnMediumEnemy ? 3 : basicLives;
-        enemy.Initialize(player.transform, speed, lives, initialColor);
+        enemy.Initialize(player, speed, lives, initialColor);
+    }
+
+    private bool TryGetEnemyPrefab(GameObject prefab, out EnemyBase enemy)
+    {
+        enemy = null;
+        if (prefab != null && prefab.TryGetComponent(out enemy))
+        {
+            return true;
+        }
+
+        string prefabName = prefab == null ? "Unassigned" : prefab.name;
+        Debug.LogError($"Enemy prefab '{prefabName}' is missing an EnemyBase component.", this);
+        return false;
     }
 
     private enum SpawnSide

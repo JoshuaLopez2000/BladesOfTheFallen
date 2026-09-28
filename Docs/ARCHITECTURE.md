@@ -57,7 +57,9 @@ Combo state and animation selection remain player presentation concerns. Shader 
 
 `EnemyDifficultyPolicy` deterministically maps kill count and a random roll to a spawn profile. `EnemySpawner` owns only Unity-specific random sampling, positions, and prefab creation. Spawn cadence comes from the core session and is clamped to a safe minimum.
 
-When a medium multi-life enemy teleports behind the player after a non-lethal hit, its distance is derived from `PlayerAttackRange`. Changing slash reach therefore keeps the enemy at the edge of the next slash without requiring a second distance setting.
+`EnemySpawner` maintains separate prewarmed pools for basic and medium enemies. Enemy death returns an instance to its originating pool, and initialization resets animation, combat, hitbox, and presentation state before reuse. Active enemies register with `EnemySpacingRegistry`, which sorts their x-positions once per frame and performs constant-time adjacent-neighbor checks instead of issuing one physics raycast per enemy per frame.
+
+When a medium multi-life enemy teleports behind the player after a non-lethal hit, its destination is calculated from the player's current pose after the teleport delay. Its distance is derived from `PlayerAttackRange` with a small configurable inset, avoiding the stale pre-hit position and placing the enemy slightly inside the next slash rather than directly on its endpoint.
 
 ## UI and persistence
 

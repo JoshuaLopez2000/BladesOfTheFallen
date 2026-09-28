@@ -43,10 +43,7 @@ public class MediumEnemyController : EnemyBase
             mediumEnemyAnimator.SetTrigger("GetHit");
             SetColor(enemyLives == 1 ? redColor : yellowColor);
 
-            Vector3 teleportPosition = player.transform.position
-                - player.transform.forward * GameManager.PlayerAttackRange;
-            teleportPosition.y = transform.position.y;
-            StartCoroutine(WaitAndTeleport(0.1f, teleportPosition));
+            StartCoroutine(WaitAndTeleportBehindPlayer(0.1f));
         }
         else
         {
@@ -58,10 +55,16 @@ public class MediumEnemyController : EnemyBase
         return true;
     }
 
-    private IEnumerator WaitAndTeleport(float waitTime, Vector3 position)
+    private IEnumerator WaitAndTeleportBehindPlayer(float waitTime)
     {
         yield return new WaitForSeconds(waitTime);
-        transform.position = position;
+
+        float teleportDistance = Mathf.Max(
+            0f,
+            GameManager.PlayerAttackRange - GameManager.MediumEnemyTeleportRangeInset);
+        Vector3 teleportPosition = player.position - player.forward * teleportDistance;
+        teleportPosition.y = transform.position.y;
+        transform.position = teleportPosition;
         FacePlayer();
     }
 }

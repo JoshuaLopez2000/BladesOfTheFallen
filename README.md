@@ -23,6 +23,7 @@
 - **Explicit assembly boundaries:** core rules, Unity runtime code, and Edit Mode tests compile separately, preventing accidental engine coupling in the domain layer.
 - **Allocation-conscious rendering:** enemy and player shader overrides reuse `MaterialPropertyBlock` instances instead of cloning materials or allocating every frame.
 - **Shared enemy behavior:** `EnemyBase` centralizes targeting, movement, spacing, hit recovery, score registration, and shader updates. Enemy subclasses contain only type-specific behavior.
+- **Scalable enemy runtime:** separate prewarmed enemy pools eliminate routine spawn/death allocations, while a shared one-dimensional spacing registry replaces per-enemy physics raycasts.
 - **Explicit combat phases:** attacks and parries progress through startup, active, and recovery windows; hit stun and post-hit invulnerability prevent overlapping enemy attacks from draining multiple lives.
 - **Cancel-friendly slashes:** new directional slashes restart pending attack animations, successful hits have no cooldown, and failed slashes retain a non-cancellable recovery penalty.
 - **Timing-based parries:** a parry counters only an active enemy attack, stunning and pushing the attacker instead of acting like another slash.

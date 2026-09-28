@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ public abstract class EnemyBase : MonoBehaviour
     private static readonly int AttackState = Animator.StringToHash("Armature_Attack");
 
     [SerializeField] private GameManagerSO gameManager;
-    protected GameObject player;
+    protected Transform player;
     [SerializeField] protected Renderer enemyRenderer;
     [SerializeField, Min(0f)] private float parryStunDuration = 0.9f;
     [SerializeField, Min(0f)] private float parryPushDistance = 2.5f;
@@ -33,8 +34,9 @@ public abstract class EnemyBase : MonoBehaviour
     protected MaterialPropertyBlock propBlock;
     protected bool isInitialized;
 
-    private Collider enemyCollider;
     private GameObject attackHitbox;
+    private Action<EnemyBase> releaseHandler;
+    private Coroutine releaseRoutine;
     private float attackCooldown = 3f;
     private float lastAttackTime;
     private float pendingRecoveryDuration = DefaultHitRecoveryDuration;
@@ -49,7 +51,6 @@ public abstract class EnemyBase : MonoBehaviour
     protected virtual void Awake()
     {
         propBlock = new MaterialPropertyBlock();
-        enemyCollider = GetComponent<Collider>();
 
         Transform[] children = GetComponentsInChildren<Transform>(true);
         foreach (Transform child in children)
@@ -64,6 +65,8 @@ public abstract class EnemyBase : MonoBehaviour
 
     private void OnEnable()
     {
+        EnemySpacingRegistry.Register(this);
+
         if (gameManager != null)
         {
             gameManager.OnPlayerLivesChanged += GiveSpace;
@@ -72,7 +75,9 @@ public abstract class EnemyBase : MonoBehaviour
 
     private void OnDisable()
     {
+        EnemySpacingRegistry.Unregister(this);
         ClearParryCue();
+        releaseRoutine = null;
 
         if (gameManager != null)
         {
@@ -82,10 +87,24 @@ public abstract class EnemyBase : MonoBehaviour
 
     public virtual void Initialize(Transform playerTransform, float newSpeed, int newLives, Color initialColor)
     {
+        StopAllCoroutines();
+        EnemyAnimator.Rebind();
+        EnemyAnimator.Update(0f);
+
         isInitialized = true;
-        player = playerTransform.gameObject;
+        player = playerTransform;
         speed = newSpeed;
         enemyLives = newLives;
+        getHit = false;
+        resetting = false;
+        pendingRecoveryDuration = DefaultHitRecoveryDuration;
+        lastAttackTime = 0f;
+        releaseRoutine = null;
+
+        if (attackHitbox != null)
+        {
+            attackHitbox.SetActive(false);
+        }
         
         attackRange = gameManager.BasicEnemyAttackRange;
         distanceBetweenEnemies = gameManager.DistanceBetweenEnemies;
@@ -107,9 +126,10 @@ public abstract class EnemyBase : MonoBehaviour
 
         if (player == null)
         {
-            player = GameObject.FindWithTag("Player");
-            if (player != null)
+            GameObject playerObject = GameObject.FindWithTag("Player");
+            if (playerObject != null)
             {
+                player = playerObject.transform;
                 FacePlayer();
             }
         }
@@ -166,7 +186,24 @@ public abstract class EnemyBase : MonoBehaviour
     protected void Die(float time)
     {
         gameManager.RegisterEnemyKilled();
-        Destroy(gameObject, time);
+
+        if (releaseRoutine != null)
+        {
+            return;
+        }
+
+        if (time <= 0f)
+        {
+            ReleaseOrDestroy();
+            return;
+        }
+
+        releaseRoutine = StartCoroutine(ReleaseAfterDelay(time));
+    }
+
+    internal void SetReleaseHandler(Action<EnemyBase> handler)
+    {
+        releaseHandler = handler;
     }
 
     protected void SetVisualStyle(float style)
@@ -186,21 +223,18 @@ public abstract class EnemyBase : MonoBehaviour
             return;
         }
 
-        float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
+        Vector3 offsetToPlayer = player.position - transform.position;
+        float sqrDistance = offsetToPlayer.sqrMagnitude;
         if (sqrDistance < attackRange * attackRange && Time.time - lastAttackTime > attackCooldown)
         {
             EnemyAnimator.SetTrigger("Attack");
             lastAttackTime = Time.time;
         }
 
-        Vector3 direction = (player.transform.position - transform.position).normalized;
-        transform.Translate(direction * speed * Time.deltaTime, Space.World);
-
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, transform.forward, out RaycastHit hit, distanceBetweenEnemies)
-            && hit.collider.CompareTag("Enemy")
-            && hit.collider != enemyCollider)
+        Vector3 direction = offsetToPlayer.normalized;
+        if (!EnemySpacingRegistry.HasEnemyAhead(this, direction.x, distanceBetweenEnemies))
         {
-            transform.Translate(-transform.forward * speed * Time.deltaTime, Space.World);
+            transform.Translate(direction * speed * Time.deltaTime, Space.World);
         }
     }
 
@@ -211,7 +245,7 @@ public abstract class EnemyBase : MonoBehaviour
             return;
         }
 
-        Vector3 direction = player.transform.position - transform.position;
+        Vector3 direction = player.position - transform.position;
         direction.y = 0f;
         if (direction.sqrMagnitude > Mathf.Epsilon)
         {
@@ -294,5 +328,24 @@ public abstract class EnemyBase : MonoBehaviour
         yield return new WaitForSeconds(waitTime);
         getHit = false;
         resetting = false;
+    }
+
+    private IEnumerator ReleaseAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        releaseRoutine = null;
+        ReleaseOrDestroy();
+    }
+
+    private void ReleaseOrDestroy()
+    {
+        if (releaseHandler != null)
+        {
+            releaseHandler(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }
