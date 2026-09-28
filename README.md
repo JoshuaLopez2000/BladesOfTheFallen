@@ -26,6 +26,7 @@
 - **Explicit combat phases:** attacks and parries progress through startup, active, and recovery windows; hit stun and post-hit invulnerability prevent overlapping enemy attacks from draining multiple lives.
 - **Cancel-friendly slashes:** new directional slashes restart pending attack animations, successful hits have no cooldown, and failed slashes retain a non-cancellable recovery penalty.
 - **Timing-based parries:** a parry counters only an active enemy attack, stunning and pushing the attacker instead of acting like another slash.
+- **Parry speed curve:** successful parries briefly drive game speed down, hold the impact, and ease back to normal through an Inspector-tunable curve without changing ordinary slash hit-stop.
 - **Readable counter cue:** enemies blink cyan during the parryable portion of their attack animation while preserving their current health color.
 - **Bounded world streaming:** `TerrainManager` keeps a small window of terrain tiles around the player and destroys tiles outside that window.
 - **Defensive persistence:** high-score and audio-setting reads and writes fail gracefully when storage is unavailable or data is invalid.

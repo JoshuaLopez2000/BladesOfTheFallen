@@ -55,4 +55,21 @@ public sealed class GameManagerSOTests
 
         Assert.That(gameManager.SpawnInterval, Is.EqualTo(0.75f));
     }
+
+    [Test]
+    public void ParryTimeEffect_ClampsRequestValues()
+    {
+        float observedSlowFactor = -1f;
+        float observedDuration = -1f;
+        gameManager.ParryTimeEffectRequested += (slowFactor, duration) =>
+        {
+            observedSlowFactor = slowFactor;
+            observedDuration = duration;
+        };
+
+        gameManager.ParryTimeEffect(2f, -1f);
+
+        Assert.That(observedSlowFactor, Is.EqualTo(1f));
+        Assert.That(observedDuration, Is.Zero);
+    }
 }

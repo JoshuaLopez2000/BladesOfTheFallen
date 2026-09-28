@@ -35,6 +35,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Min(0f)] private float hitRecoveryDuration = 0.15f;
     [SerializeField, Min(0f)] private float damageInvulnerabilityDuration = 0.7f;
 
+    [Header("Combat Feedback")]
+    [SerializeField, Range(0f, 1f)] private float parrySlowFactor = 0.1f;
+    [SerializeField, Min(0f)] private float parryTimeEffectDuration = 0.45f;
+
     [Header("Audio")]
     [FormerlySerializedAs("slashs")]
     [SerializeField] private List<AudioClip> slashClips = new();
@@ -222,7 +226,7 @@ public class PlayerController : MonoBehaviour
         if (hitEnemy)
         {
             ApproachEnemy(enemy.transform);
-            CompleteSuccessfulAction();
+            CompleteSuccessfulAction(false);
         }
         else
         {
@@ -324,11 +328,20 @@ public class PlayerController : MonoBehaviour
             Mathf.Max(0f, attackRange - maxApproachDistance));
     }
 
-    private void CompleteSuccessfulAction()
+    private void CompleteSuccessfulAction(bool wasParry)
     {
         combo++;
         lastAttackTime = Time.time;
-        gameManager.HitTimeEffect(0.2f, 0.15f);
+
+        if (wasParry)
+        {
+            gameManager.ParryTimeEffect(parrySlowFactor, parryTimeEffectDuration);
+        }
+        else
+        {
+            gameManager.HitTimeEffect(0.2f, 0.15f);
+        }
+
         SpawnComboText();
     }
 
@@ -419,7 +432,7 @@ public class PlayerController : MonoBehaviour
             if (enemy != null && enemy.TryParry())
             {
                 animator.SetBool(HitEnemyParameter, true);
-                CompleteSuccessfulAction();
+                CompleteSuccessfulAction(true);
             }
 
             return;

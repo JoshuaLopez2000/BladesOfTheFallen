@@ -7,6 +7,14 @@ public class GameManagerMono : MonoBehaviour
 {
     [SerializeField] private GameManagerSO gameManager;
 
+    [Header("Combat Time Effects")]
+    [Tooltip("Maps normalized parry-effect time to game speed: 1 is normal and 0 is the configured slow factor.")]
+    [SerializeField] private AnimationCurve parryTimeScaleCurve = new(
+        new Keyframe(0f, 1f, 0f, -8f),
+        new Keyframe(0.2f, 0f, 0f, 0f),
+        new Keyframe(0.45f, 0f, 0f, 0f),
+        new Keyframe(1f, 1f, 2f, 0f));
+
     private Coroutine timeScaleCoroutine;
     private static GameManagerMono activeInstance;
 
@@ -54,6 +62,7 @@ public class GameManagerMono : MonoBehaviour
         gameManager.PauseRequested += HandlePauseRequested;
         gameManager.ResumeRequested += HandleResumeRequested;
         gameManager.HitStopRequested += HandleHitStopRequested;
+        gameManager.ParryTimeEffectRequested += HandleParryTimeEffectRequested;
         gameManager.RestartRequested += RestartCurrentScene;
         gameManager.MainMenuRequested += GoToMainMenu;
     }
@@ -68,6 +77,7 @@ public class GameManagerMono : MonoBehaviour
         gameManager.PauseRequested -= HandlePauseRequested;
         gameManager.ResumeRequested -= HandleResumeRequested;
         gameManager.HitStopRequested -= HandleHitStopRequested;
+        gameManager.ParryTimeEffectRequested -= HandleParryTimeEffectRequested;
         gameManager.RestartRequested -= RestartCurrentScene;
         gameManager.MainMenuRequested -= GoToMainMenu;
     }
@@ -93,6 +103,11 @@ public class GameManagerMono : MonoBehaviour
     public void HitStop(float slowFactor, float duration, System.Action<float> callback = null)
     {
         StartTimeScaleTransition(HitTimeCoroutine(slowFactor, duration, callback));
+    }
+
+    public void PlayParryTimeEffect(float slowFactor, float duration, System.Action<float> callback = null)
+    {
+        StartTimeScaleTransition(ParryTimeEffectCoroutine(slowFactor, duration, callback));
     }
 
     private void StartTimeScaleTransition(IEnumerator transition)
@@ -183,6 +198,33 @@ public class GameManagerMono : MonoBehaviour
         timeScaleCoroutine = null;
     }
 
+    private IEnumerator ParryTimeEffectCoroutine(float slowFactor, float duration, System.Action<float> callback)
+    {
+        if (duration <= 0f)
+        {
+            SetTimeScale(1f, callback);
+            timeScaleCoroutine = null;
+            yield break;
+        }
+
+        slowFactor = Mathf.Clamp01(slowFactor);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = Mathf.Clamp01(elapsed / duration);
+            float curveValue = parryTimeScaleCurve == null || parryTimeScaleCurve.length == 0
+                ? progress
+                : Mathf.Clamp01(parryTimeScaleCurve.Evaluate(progress));
+            SetTimeScale(Mathf.Lerp(slowFactor, 1f, curveValue), callback);
+            yield return null;
+        }
+
+        SetTimeScale(1f, callback);
+        timeScaleCoroutine = null;
+    }
+
     private static void SetTimeScale(float value, System.Action<float> callback)
     {
         Time.timeScale = value;
@@ -207,6 +249,11 @@ public class GameManagerMono : MonoBehaviour
     private void HandleHitStopRequested(float slowFactor, float duration)
     {
         HitStop(slowFactor, duration, gameManager.ReportTimeScale);
+    }
+
+    private void HandleParryTimeEffectRequested(float slowFactor, float duration)
+    {
+        PlayParryTimeEffect(slowFactor, duration, gameManager.ReportTimeScale);
     }
 
     private void RestartCurrentScene()

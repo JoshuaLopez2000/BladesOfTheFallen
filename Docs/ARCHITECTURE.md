@@ -43,6 +43,8 @@ Slashes resolve damage during their active phase with a directional raycast. Bef
 
 Parries no longer deal ordinary attack damage. They only succeed when an animation-controlled `EnemyAttack` collider enters the player during the active parry window. A successful parry cancels that hitbox, stuns and pushes the enemy, awards hit score, and contributes to the combo.
 
+A successful parry requests its own time-scale effect instead of reusing slash hit-stop. `GameManagerMono` evaluates an Inspector-tunable curve with unscaled time, producing a sharp slowdown, a short impact hold, and a smooth return to normal speed while retaining sole ownership of `Time.timeScale` transitions.
+
 During the enemy animation frames leading into and overlapping its active attack hitbox, `EnemyBase` alternates a cyan parry-cue color with the enemy's current health color. The cue is derived from normalized animation time, so it remains synchronized when animation playback speed changes and restores the correct health color when interrupted.
 
 Incoming damage interrupts the current combat action and enters hit stun. The first hit also starts a separate invulnerability window, preventing simultaneous attack colliders from removing multiple lives. The player can return to action before invulnerability expires, preserving a fast pace without allowing unfair burst damage.

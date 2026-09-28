@@ -68,6 +68,7 @@ public class GameManagerSO : ScriptableObject
     public event Action<float> PauseRequested;
     public event Action<float> ResumeRequested;
     public event Action<float, float> HitStopRequested;
+    public event Action<float, float> ParryTimeEffectRequested;
     public event Action RestartRequested;
     public event Action MainMenuRequested;
 
@@ -128,6 +129,11 @@ public class GameManagerSO : ScriptableObject
     public void HitTimeEffect(float slowFactor = 0.2f, float duration = 0.5f)
     {
         HitStopRequested?.Invoke(Mathf.Clamp01(slowFactor), Mathf.Max(0f, duration));
+    }
+
+    public void ParryTimeEffect(float slowFactor = 0.1f, float duration = 0.45f)
+    {
+        ParryTimeEffectRequested?.Invoke(Mathf.Clamp01(slowFactor), Mathf.Max(0f, duration));
     }
 
     public void ChangeState(GameState newState)
