@@ -4,6 +4,10 @@
 
 ![Game banner](https://github.com/user-attachments/assets/f3ef9698-79a1-4042-8272-bc433e92e0ac)
 
+## Gameplay preview
+
+![Gameplay](Docs/media/blades_intro.gif)
+
 ## Overview
 
 **Blades of the Fallen** is an endless action fighter made with Unity 6 and the Universal Render Pipeline. The player defends a lone warrior from enemies approaching on both sides. Short gesture inputs drive attacks and parries, while hit stop, camera feedback, combo text, and material effects reinforce combat timing.
